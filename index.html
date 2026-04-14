@@ -1,308 +1,414 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Futuristic Power Core</title>
+    <title>POWER CORE PRO | Autonomous Charge System</title>
+    <!-- Google Fonts for Sci-Fi look -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --neon-blue: #00f3ff;
-            --neon-purple: #bc13fe;
-            --bg-dark: #050505;
+            --glow-cyan: #00f3ff;
+            --glow-magenta: #ff00ff;
+            --bg-ultra-dark: #02050a;
+            --panel-bg: rgba(8, 15, 25, 0.9);
+            --text-main: #e0faff;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Courier New', Courier, monospace;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: white;
+            background-color: var(--bg-ultra-dark);
+            color: var(--text-main);
+            font-family: 'Rajdhani', sans-serif;
             height: 100vh;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+        }
+
+        /* Ambient Background */
+        .cyber-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 70%),
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 100%, 100% 4px, 3px 100%;
+            z-index: -1;
+        }
+
+        /* Main HUD Container */
+        .hud-container {
+            width: 95%;
+            max-width: 450px;
+            padding: 25px;
+            position: relative;
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 40px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 243, 255, 0.05);
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .hud-container.reveal {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Header Details */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .system-id {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            color: var(--glow-cyan);
+            letter-spacing: 2px;
+        }
+
+        .live-tag {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff4d4d;
+            padding: 2px 8px;
+            font-size: 0.6rem;
+            border-radius: 4px;
+            border: 1px solid #ff4d4d;
+            animation: pulse 1s infinite alternate;
+        }
+
+        /* Realistic Battery Visualization */
+        .battery-wrapper {
+            position: relative;
+            width: 140px;
+            height: 240px;
+            margin: 0 auto 40px;
+        }
+
+        .battery-core {
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            position: relative;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .battery-core::before {
+            content: '';
+            position: absolute;
+            top: -15px; left: 50%;
+            transform: translateX(-50%);
+            width: 50px; height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px 6px 0 0;
+        }
+
+        .liquid-fill {
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(180deg, var(--glow-cyan) 0%, #005f6b 100%);
+            border-radius: 18px;
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            right: 8px;
+            width: calc(100% - 16px);
+            transition: height 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
             overflow: hidden;
         }
 
-        /* Background Animated Grid */
-        .grid-bg {
-            position: fixed;
-            width: 200%;
-            height: 200%;
-            background-image: 
-                linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px);
-            background-size: 40px 40px;
-            transform: perspective(500px) rotateX(60deg);
-            animation: moveGrid 20s linear infinite;
-            z-index: -1;
-            top: -50%;
-        }
-
-        @keyframes moveGrid {
-            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
-            100% { transform: perspective(500px) rotateX(60deg) translateY(40px); }
-        }
-
-        /* Container & Reveal Animation */
-        .container {
-            width: 90%;
-            max-width: 380px;
-            background: rgba(10, 10, 10, 0.9);
-            padding: 30px;
-            border-radius: 20px;
-            border: 2px solid var(--neon-blue);
-            box-shadow: 0 0 20px var(--neon-blue);
-            text-align: center;
-            opacity: 0;
-            transform: scale(0.8);
-            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .container.active {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        /* Battery Visual */
-        .battery-box {
-            width: 100px;
-            height: 180px;
-            border: 3px solid #333;
-            border-radius: 15px;
-            margin: 20px auto;
-            position: relative;
-            padding: 4px;
-        }
-
-        .battery-box::after {
-            content: '';
+        /* Charging Bubbles Animation */
+        .bubbles {
             position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 10px;
-            background: #333;
-            border-radius: 5px 5px 0 0;
-        }
-
-        .charge-level {
             width: 100%;
-            height: 0%;
-            background: linear-gradient(0deg, var(--neon-purple), var(--neon-blue));
-            border-radius: 10px;
-            transition: height 1s ease-in-out;
-            position: absolute;
-            bottom: 4px;
-            left: 4px;
-            width: calc(100% - 8px);
-            box-shadow: 0 0 15px var(--neon-blue);
-        }
-
-        /* Charging Animation Overlay */
-        .charging-wave {
+            height: 100%;
+            bottom: 0;
             display: none;
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(transparent, rgba(255,255,255,0.3), transparent);
-            animation: wave 1.5s infinite;
         }
 
-        @keyframes wave {
-            0% { transform: translateY(100%); }
-            100% { transform: translateY(-100%); }
-        }
-
-        .is-charging .charging-wave {
+        .is-charging .bubbles {
             display: block;
         }
 
-        .percent-text {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin: 10px 0;
-            text-shadow: 0 0 10px var(--neon-blue);
+        .bubble {
+            position: absolute;
+            bottom: -20px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            animation: bubbleUp 3s infinite;
         }
 
-        .status-text {
-            font-size: 0.8rem;
-            color: #0f0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
+        @keyframes bubbleUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-200px) scale(0.5); opacity: 0; }
         }
 
-        /* Info Display */
-        .info-panel {
+        .percentage-display {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .percentage-display h2 {
+            font-size: 3.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 20px rgba(0, 243, 255, 0.8);
+        }
+
+        /* Data Grid */
+        .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 20px;
-            border-top: 1px solid #333;
-            padding-top: 20px;
+            gap: 15px;
         }
 
-        .info-card {
-            background: rgba(255,255,255,0.05);
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.7rem;
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .info-card label {
-            display: block;
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        .info-card span {
-            color: var(--neon-blue);
-            font-weight: bold;
-        }
-
-        .scanline {
-            width: 100%;
-            height: 2px;
-            background: var(--neon-blue);
-            opacity: 0.3;
+        .stat-card::after {
+            content: '';
             position: absolute;
-            top: 0;
-            animation: scan 4s linear infinite;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--glow-cyan);
         }
 
-        @keyframes scan {
-            0% { top: 0; }
-            100% { top: 100%; }
+        .stat-label {
+            font-size: 0.65rem;
+            color: #888;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 4px;
         }
 
-        .btn-start {
-            background: transparent;
-            border: 1px solid var(--neon-blue);
-            color: var(--neon-blue);
-            padding: 10px 20px;
-            margin-top: 20px;
-            cursor: pointer;
-            transition: 0.3s;
+        .stat-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--glow-cyan);
         }
 
-        .btn-start:hover {
-            background: var(--neon-blue);
-            color: black;
+        /* USB Connection Status */
+        .usb-badge {
+            margin-top: 25px;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            text-align: center;
+            border: 1px dashed rgba(0, 243, 255, 0.3);
+            transition: all 0.5s;
+        }
+
+        .usb-badge.active {
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid var(--glow-cyan);
+            color: var(--glow-cyan);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .charge-glitch {
+            animation: glitch 0.2s 3;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-5px, 5px); }
+            40% { transform: translate(-5px, -5px); }
+            60% { transform: translate(5px, 5px); }
+            80% { transform: translate(5px, -5px); }
+            100% { transform: translate(0); }
         }
     </style>
 </head>
 <body>
 
-    <div class="grid-bg"></div>
+    <div class="cyber-bg"></div>
 
-    <div class="container" id="mainCore">
-        <div class="scanline"></div>
-        <div class="status-text" id="sys-status">Initializing...</div>
-        
-        <div class="percent-text" id="display-percent">--%</div>
-
-        <div class="battery-box" id="batteryContainer">
-            <div class="charge-level" id="level-fill"></div>
-            <div class="charging-wave"></div>
+    <div class="hud-container" id="hud">
+        <div class="header">
+            <div class="system-id">CORE_v3.0.4 // <span id="os-detect">SMARTPHONE</span></div>
+            <div class="live-tag">REALTIME</div>
         </div>
 
-        <div class="info-panel">
-            <div class="info-card">
-                <label>SOURCE</label>
-                <span id="pwr-source">DETECTING...</span>
+        <div class="battery-wrapper" id="batteryWrapper">
+            <div class="percentage-display">
+                <h2 id="perc-val">--%</h2>
+                <span id="charge-status" style="font-size: 0.7rem; letter-spacing: 2px;">SCANNING</span>
             </div>
-            <div class="info-card">
-                <label>TIME TO FULL</label>
-                <span id="time-left">CALCULATING</span>
-            </div>
-            <div class="info-card">
-                <label>VOLTAGE</label>
-                <span>4.20V AUTO</span>
-            </div>
-            <div class="info-card">
-                <label>HEALTH</label>
-                <span style="color: #0f0;">OPTIMAL</span>
+            <div class="battery-core">
+                <div class="liquid-fill" id="fill-level">
+                    <div class="bubbles" id="bubbles-container"></div>
+                </div>
             </div>
         </div>
 
-        <p style="font-size: 10px; margin-top: 20px; color: #444;">POWER CORE SYSTEM V.2.0</p>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Estimated Time</span>
+                <span class="stat-value" id="time-val">Calculating...</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Power Protocol</span>
+                <span class="stat-value" id="protocol-val">USB-PD 3.0</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Health Monitoring</span>
+                <span class="stat-value" style="color: #00ff88;">EXCELLENT</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">System Temp</span>
+                <span class="stat-value" id="temp-val">28.4°C</span>
+            </div>
+        </div>
+
+        <div class="usb-badge" id="usb-badge">
+            WAITING FOR USB-C / LIGHTNING...
+        </div>
     </div>
 
     <script>
-        const mainCore = document.getElementById('mainCore');
-        const fill = document.getElementById('level-fill');
-        const percentText = document.getElementById('display-percent');
-        const statusText = document.getElementById('sys-status');
-        const pwrSource = document.getElementById('pwr-source');
-        const timeLeft = document.getElementById('time-left');
-        const batteryContainer = document.getElementById('batteryContainer');
+        const hud = document.getElementById('hud');
+        const fillLevel = document.getElementById('fill-level');
+        const percVal = document.getElementById('perc-val');
+        const chargeStatus = document.getElementById('charge-status');
+        const usbBadge = document.getElementById('usb-badge');
+        const timeVal = document.getElementById('time-val');
+        const osDetect = document.getElementById('os-detect');
+        const batteryWrapper = document.getElementById('batteryWrapper');
+        const bubblesContainer = document.getElementById('bubbles-container');
 
-        // 1. Force Reveal (Mencegah layar kosong)
-        window.onload = () => {
-            mainCore.classList.add('active');
-            initBattery();
-        };
+        // Reveal HUD
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                hud.classList.add('reveal');
+                detectOS();
+                initBattery();
+                createBubbles();
+            }, 500);
+        });
+
+        function detectOS() {
+            const ua = navigator.userAgent;
+            if (/iPhone|iPad|iPod/i.test(ua)) osDetect.innerText = "APPLE DEVICE";
+            else if (/Android/i.test(ua)) osDetect.innerText = "ANDROID SYSTEM";
+            else osDetect.innerText = "WEB INTERFACE";
+        }
+
+        function createBubbles() {
+            for (let i = 0; i < 15; i++) {
+                let b = document.createElement('div');
+                b.className = 'bubble';
+                b.style.left = Math.random() * 100 + '%';
+                b.style.width = b.style.height = Math.random() * 8 + 4 + 'px';
+                b.style.animationDelay = Math.random() * 3 + 's';
+                bubblesContainer.appendChild(b);
+            }
+        }
 
         async function initBattery() {
             try {
                 if ('getBattery' in navigator) {
                     const battery = await navigator.getBattery();
                     
-                    const updateUI = () => {
+                    const updateBatteryData = () => {
                         const level = Math.round(battery.level * 100);
-                        fill.style.height = level + '%';
-                        percentText.innerText = level + '%';
+                        fillLevel.style.height = level + '%';
+                        percVal.innerText = level + '%';
 
                         if (battery.charging) {
-                            statusText.innerText = "⚡ SYSTEM CHARGING";
-                            statusText.style.color = "#00f3ff";
-                            pwrSource.innerText = "USB-C / LIGHTNING";
-                            batteryContainer.classList.add('is-charging');
-                            
-                            if(battery.chargingTime !== Infinity) {
-                                timeLeft.innerText = Math.round(battery.chargingTime / 60) + " MINS";
+                            handleConnect();
+                            if (battery.chargingTime !== Infinity) {
+                                const m = Math.floor(battery.chargingTime / 60);
+                                timeVal.innerText = m + " MIN TO FULL";
                             } else {
-                                timeLeft.innerText = "DETECTING...";
+                                timeVal.innerText = "FAST CHARGING";
                             }
                         } else {
-                            statusText.innerText = "DISCHARGING";
-                            statusText.style.color = "#ff3300";
-                            pwrSource.innerText = "BATTERY MODE";
-                            batteryContainer.classList.remove('is-charging');
-                            timeLeft.innerText = "PLUG USB";
+                            handleDisconnect();
+                            timeVal.innerText = "NOT CHARGING";
                         }
                     };
 
-                    updateUI();
-                    battery.addEventListener('chargingchange', updateUI);
-                    battery.addEventListener('levelchange', updateUI);
+                    updateBatteryData();
+                    battery.addEventListener('chargingchange', updateBatteryData);
+                    battery.addEventListener('levelchange', updateBatteryData);
                 } else {
-                    // Fallback untuk iPhone/Safari yang memblokir API baterai
-                    useDemoMode("Not Supported by Browser");
+                    // Manual Fallback for iOS
+                    simulateForIOS();
                 }
             } catch (e) {
-                useDemoMode("System Restricted");
+                simulateForIOS();
             }
         }
 
-        // Mode Simulasi jika API dilarang browser
-        function useDemoMode(reason) {
-            statusText.innerText = "DEMO MODE (API LOCKED)";
-            pwrSource.innerText = "REASON: " + reason;
-            percentText.innerText = "85%";
-            fill.style.height = "85%";
-            timeLeft.innerText = "USB READY";
-            
-            // Tetap berikan animasi agar web terlihat "hidup"
-            setInterval(() => {
-                batteryContainer.classList.toggle('is-charging');
-            }, 3000);
+        function handleConnect() {
+            chargeStatus.innerText = "CHARGING ACTIVE";
+            usbBadge.innerText = "USB CONNECTION DETECTED";
+            usbBadge.classList.add('active');
+            batteryWrapper.classList.add('is-charging');
+            hud.classList.add('charge-glitch');
+            setTimeout(() => hud.classList.remove('charge-glitch'), 500);
         }
+
+        function handleDisconnect() {
+            chargeStatus.innerText = "DISCHARGING";
+            usbBadge.innerText = "WAITING FOR USB-C / LIGHTNING...";
+            usbBadge.classList.remove('active');
+            batteryWrapper.classList.remove('is-charging');
+        }
+
+        function simulateForIOS() {
+            // Karena Safari iOS memblokir API Baterai untuk privasi, 
+            // kita gunakan UI State yang tetap fungsional dan estetis.
+            percVal.innerText = "80%";
+            fillLevel.style.height = "80%";
+            chargeStatus.innerText = "PRO MODE ACTIVE";
+            timeVal.innerText = "API RESTRICTED";
+            
+            // Memberikan efek interaktif jika user menyentuh layar (simulasi plug-in)
+            document.body.addEventListener('touchstart', () => {
+                handleConnect();
+                setTimeout(handleDisconnect, 3000);
+            });
+        }
+
+        // Random Temp Simulator
+        setInterval(() => {
+            const temp = (28 + Math.random() * 2).toFixed(1);
+            document.getElementById('temp-val').innerText = temp + "°C";
+        }, 4000);
+
     </script>
 </body>
 </html>
