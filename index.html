@@ -3,238 +3,411 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Battery Pro Monitor | Real-time</title>
+    <title>Battery Pro Ultra | Logic Monitor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700&display=swap');
         
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --accent: #f093fb;
+            --bg-dark: #020617;
+        }
+
         body {
-            background: #050505;
-            color: #e0e0e0;
-            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #f8fafc;
+            font-family: 'JetBrains Mono', monospace;
+            background-image: radial-gradient(circle at 50% 50%, #1e293b 0%, #020617 100%);
+            min-height: 100vh;
         }
 
-        .glass {
-            background: rgba(20, 20, 20, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .pro-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
         }
 
-        .neo-gradient {
-            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .pro-card:hover {
+            border-color: var(--primary);
         }
 
-        .charging-animate {
-            animation: pulse 2s infinite;
+        .neon-text {
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+        .glow-bar {
+            box-shadow: 0 0 15px var(--primary);
         }
 
         #usb-lock-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.95);
-            z-index: 100;
+            background: rgba(2, 6, 23, 0.98);
+            z-index: 999;
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
-            text-align: center;
-            transition: all 0.5s ease;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .hidden-lock {
             opacity: 0;
             pointer-events: none;
+            transform: scale(1.1);
+        }
+
+        .scanner-line {
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+            position: absolute;
+            top: 0;
+            animation: scan 3s linear infinite;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        @keyframes scan {
+            0% { top: 0% }
+            100% { top: 100% }
+        }
+
+        .charging-wave {
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            background-size: 200% 100%;
+            animation: wave 1.5s linear infinite;
+        }
+
+        @keyframes wave {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 lg:p-8">
 
-    <!-- Overlay Lock: Hanya aktif jika tidak dicharge -->
+    <!-- USB Auth Lock -->
     <div id="usb-lock-overlay">
-        <i class="fas fa-plug text-6xl text-blue-500 mb-4 charging-animate"></i>
-        <h1 class="text-2xl font-bold text-white mb-2">PRO EDITION</h1>
-        <p class="text-gray-400 px-6">Silakan hubungkan kabel USB / Charger untuk mengakses Dashboard Pro.</p>
+        <div class="absolute inset-0 overflow-hidden opacity-20">
+            <div class="scanner-line"></div>
+        </div>
+        <div class="text-center z-10 p-6">
+            <div class="mb-6 relative">
+                <i class="fas fa-bolt-lightning text-7xl text-cyan-400"></i>
+                <div class="absolute inset-0 blur-xl bg-cyan-400 opacity-30 animate-pulse"></div>
+            </div>
+            <h1 class="text-4xl font-bold mb-4 tracking-tighter italic" style="font-family: 'Orbitron';">AUTHENTICATING...</h1>
+            <p class="text-gray-400 max-w-xs mx-auto text-sm">Waiting for Pro-Link USB Connection. Plug in your original cable to unlock the dashboard.</p>
+            <div class="mt-8 flex justify-center gap-2">
+                <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"></span>
+                <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
+                <span class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></span>
+            </div>
+        </div>
     </div>
 
-    <div class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Top Navigation -->
+        <div class="flex flex-wrap justify-between items-end mb-8 gap-4">
             <div>
-                <h1 class="text-2xl font-bold neo-gradient italic" style="font-family: 'Orbitron';">BATT-PRO v2.0</h1>
-                <p class="text-xs text-gray-500 tracking-widest">REAL-TIME USB DIAGNOSTIC</p>
+                <div class="flex items-center gap-2 text-cyan-400 mb-1">
+                    <span class="relative flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                    </span>
+                    <span class="text-[10px] font-bold tracking-widest uppercase">System Live</span>
+                </div>
+                <h1 class="text-3xl font-bold tracking-tighter" style="font-family: 'Orbitron';">BATT-PRO <span class="text-cyan-400">ULTRA</span></h1>
             </div>
-            <div id="status-badge" class="px-4 py-1 rounded-full text-xs font-bold border border-blue-500 text-blue-500">
-                DISCONNECTED
+            <div class="flex gap-4">
+                <div class="text-right">
+                    <p class="text-[10px] text-gray-500 uppercase">Input Voltage</p>
+                    <p id="volts" class="font-bold text-sm text-yellow-500">5.12 V</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] text-gray-500 uppercase">Input Current</p>
+                    <p id="amps" class="font-bold text-sm text-green-500">-- mA</p>
+                </div>
             </div>
-        </header>
+        </div>
 
-        <!-- Main Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="glass p-6 rounded-3xl text-center relative overflow-hidden">
-                <p class="text-sm text-gray-400 mb-2">Battery Level</p>
-                <div id="level-text" class="text-6xl font-bold text-white mb-2">0%</div>
-                <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
-                    <div id="level-bar" class="h-full bg-blue-500 transition-all duration-1000" style="width: 0%"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Panel: Large Battery Status -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="pro-card p-8 rounded-[2rem] text-center relative overflow-hidden">
+                    <div id="charge-wave" class="absolute bottom-0 left-0 w-full h-1"></div>
+                    <p class="text-xs text-gray-400 uppercase tracking-widest mb-6">Current Capacity</p>
+                    
+                    <div class="relative inline-block mb-6">
+                        <svg class="w-48 h-48 transform -rotate-90">
+                            <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="8" fill="transparent" class="text-gray-800" />
+                            <circle id="progress-circle" cx="96" cy="96" r="88" stroke="currentColor" stroke-width="12" fill="transparent" 
+                                stroke-dasharray="552.92" stroke-dashoffset="552.92"
+                                stroke-linecap="round"
+                                class="text-cyan-400 transition-all duration-1000" />
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col justify-center items-center">
+                            <span id="perc-main" class="text-6xl font-bold neon-text">0%</span>
+                            <span id="phase-text" class="text-[10px] text-cyan-400 font-bold uppercase mt-1">Standby</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mt-4">
+                        <div class="bg-black/40 p-3 rounded-2xl">
+                            <p class="text-[10px] text-gray-500 uppercase">Status</p>
+                            <p id="status-label" class="text-sm font-bold text-blue-400">CHECKING</p>
+                        </div>
+                        <div class="bg-black/40 p-3 rounded-2xl">
+                            <p class="text-[10px] text-gray-500 uppercase">Temp</p>
+                            <p id="temp-label" class="text-sm font-bold text-orange-400">28.4°C</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charging Phase Logic -->
+                <div class="pro-card p-6 rounded-3xl">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Charging Logic</h3>
+                    <div class="space-y-4">
+                        <div id="phase-1" class="flex items-center gap-4 opacity-30">
+                            <div class="w-8 h-8 rounded-lg bg-cyan-900 flex items-center justify-center text-cyan-400 text-xs">01</div>
+                            <div>
+                                <p class="text-xs font-bold">Fast Charge Phase</p>
+                                <p class="text-[10px] text-gray-500">0% - 80% High Amperage</p>
+                            </div>
+                        </div>
+                        <div id="phase-2" class="flex items-center gap-4 opacity-30">
+                            <div class="w-8 h-8 rounded-lg bg-purple-900 flex items-center justify-center text-purple-400 text-xs">02</div>
+                            <div>
+                                <p class="text-xs font-bold">Balanced Phase</p>
+                                <p class="text-[10px] text-gray-500">80% - 95% Reduced Heat</p>
+                            </div>
+                        </div>
+                        <div id="phase-3" class="flex items-center gap-4 opacity-30">
+                            <div class="w-8 h-8 rounded-lg bg-green-900 flex items-center justify-center text-green-400 text-xs">03</div>
+                            <div>
+                                <p class="text-xs font-bold">Trickle Charge</p>
+                                <p class="text-[10px] text-gray-500">95% - 100% Cell Leveling</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="glass p-6 rounded-3xl">
-                <p class="text-sm text-gray-400 mb-2">Charging Time Left</p>
-                <div id="time-left" class="text-3xl font-bold text-white mt-4">--:--</div>
-                <p id="charging-mode" class="text-xs text-green-500 mt-2 italic font-semibold">Detecting power source...</p>
-            </div>
+            <!-- Right Panel: Analytics & Chart -->
+            <div class="lg:col-span-8 space-y-6">
+                <!-- Analytics Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="pro-card p-6 rounded-3xl">
+                        <i class="fas fa-hourglass-half text-cyan-400 mb-3"></i>
+                        <p class="text-[10px] text-gray-500 uppercase">Estimated Finish</p>
+                        <p id="eta-text" class="text-xl font-bold">--:--</p>
+                    </div>
+                    <div class="pro-card p-6 rounded-3xl border-l-4 border-l-green-500">
+                        <i class="fas fa-heart-pulse text-green-400 mb-3"></i>
+                        <p class="text-[10px] text-gray-500 uppercase">Cell Health</p>
+                        <p class="text-xl font-bold text-green-400">98.2%</p>
+                    </div>
+                    <div class="pro-card p-6 rounded-3xl">
+                        <i class="fas fa-microchip text-purple-400 mb-3"></i>
+                        <p class="text-[10px] text-gray-500 uppercase">Controller</p>
+                        <p class="text-xl font-bold">BMS-v3.0</p>
+                    </div>
+                </div>
 
-            <div class="glass p-6 rounded-3xl">
-                <p class="text-sm text-gray-400 mb-2">Health Status</p>
-                <div class="text-3xl font-bold text-green-400 mt-4">EXCELLENT</div>
-                <p class="text-xs text-gray-500 mt-2">Voltage: 4.2V (Optimized)</p>
-            </div>
-        </div>
+                <!-- Main Analytics Chart -->
+                <div class="pro-card p-6 rounded-[2rem]">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-sm font-bold uppercase tracking-widest text-cyan-400">Live Power Curve</h3>
+                        <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded">Update: Real-time</span>
+                    </div>
+                    <div class="h-[250px] w-full">
+                        <canvas id="ultraChart"></canvas>
+                    </div>
+                </div>
 
-        <!-- Real-time Chart -->
-        <div class="glass p-6 rounded-3xl mb-8">
-            <h2 class="text-lg font-semibold mb-4 flex items-center">
-                <i class="fas fa-chart-line mr-2 text-blue-500"></i> Charge Curve (Real-time)
-            </h2>
-            <canvas id="chargeChart" height="150"></canvas>
-        </div>
-
-        <!-- Optimization Tips -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="glass p-6 rounded-3xl">
-                <h3 class="font-bold mb-4 text-blue-400 italic">BATTERY OPTIMIZATION</h3>
-                <ul class="text-sm space-y-3 text-gray-300" id="tips-list">
-                    <li class="flex items-start">
-                        <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
-                        <span>Gunakan kabel original untuk menjaga kestabilan arus masuk.</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-temperature-low text-blue-500 mt-1 mr-3"></i>
-                        <span>Suhu optimal saat charging adalah 20°C - 30°C.</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-bolt text-yellow-500 mt-1 mr-3"></i>
-                        <span>Hentikan aplikasi background berat (Game/Video) untuk pengisian lebih cepat.</span>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="glass p-6 rounded-3xl flex flex-col justify-center items-center border-dashed border-blue-900">
-                <i class="fas fa-shield-halved text-4xl text-blue-500 mb-4"></i>
-                <p class="text-center font-semibold">Pro Protection Active</p>
-                <p class="text-xs text-gray-500 text-center mt-2">Sistem memonitor lonjakan arus secara otomatis untuk mencegah degradasi baterai.</p>
+                <!-- Dynamic Tips -->
+                <div class="pro-card p-6 rounded-[2rem] bg-gradient-to-br from-slate-900 to-cyan-950">
+                    <h3 class="text-sm font-bold uppercase mb-4 flex items-center gap-2">
+                        <i class="fas fa-shield-virus text-cyan-400"></i> Pro Optimization Tips
+                    </h3>
+                    <div id="dynamic-tips" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-300">
+                        <!-- Tips populated by JS -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let batteryChart;
-        const ctx = document.getElementById('chargeChart').getContext('2d');
-        const dataPoints = [];
-        const labelPoints = [];
+        let chartInstance;
+        const ctx = document.getElementById('ultraChart').getContext('2d');
+        const levelHistory = [];
+        const timeLabels = [];
+        const tempHistory = [];
 
-        // Inisialisasi Chart
         function initChart() {
-            batteryChart = new Chart(ctx, {
+            chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labelPoints,
-                    datasets: [{
-                        label: 'Battery Level (%)',
-                        data: dataPoints,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 0
-                    }]
+                    labels: timeLabels,
+                    datasets: [
+                        {
+                            label: 'Battery %',
+                            data: levelHistory,
+                            borderColor: '#00f2fe',
+                            borderWidth: 3,
+                            fill: true,
+                            backgroundColor: 'rgba(0, 242, 254, 0.1)',
+                            tension: 0.4,
+                            pointRadius: 0,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Temp °C',
+                            data: tempHistory,
+                            borderColor: '#f97316',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            yAxisID: 'y1'
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } },
-                        x: { grid: { display: false } }
+                        y: { 
+                            beginAtZero: true, 
+                            max: 105, 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#64748b', font: { size: 10 } }
+                        },
+                        y1: { 
+                            position: 'right',
+                            min: 20, max: 50,
+                            grid: { display: false },
+                            ticks: { color: '#f97316', font: { size: 10 } }
+                        },
+                        x: { display: false }
                     }
                 }
             });
         }
 
-        async function monitorBattery() {
+        async function startUltraMonitor() {
             if (!('getBattery' in navigator)) {
-                alert("Browser anda tidak mensupport API Baterai.");
+                alert("This device is not compatible with Battery Pro.");
                 return;
             }
 
             const battery = await navigator.getBattery();
+            
+            function updateSystem() {
+                const level = battery.level * 100;
+                const charging = battery.charging;
 
-            function updateUI() {
-                const level = Math.round(battery.level * 100);
+                // 1. Lock Control
+                const lock = document.getElementById('usb-lock-overlay');
+                if (charging) {
+                    lock.classList.add('hidden-lock');
+                } else {
+                    lock.classList.remove('hidden-lock');
+                }
+
+                // 2. Battery Percentage & Circle
+                document.getElementById('perc-main').innerText = Math.floor(level) + "%";
+                const offset = 552.92 - (552.92 * level / 100);
+                document.getElementById('progress-circle').style.strokeDashoffset = offset;
+
+                // 3. Phase Detection & Simulation Logic
+                const phase1 = document.getElementById('phase-1');
+                const phase2 = document.getElementById('phase-2');
+                const phase3 = document.getElementById('phase-3');
+                const wave = document.getElementById('charge-wave');
+                const statusLabel = document.getElementById('status-label');
+                const ampLabel = document.getElementById('amps');
+
+                [phase1, phase2, phase3].forEach(el => el.classList.add('opacity-30'));
                 
-                // Update Lock Screen
-                const overlay = document.getElementById('usb-lock-overlay');
-                if (battery.charging) {
-                    overlay.classList.add('hidden-lock');
-                    document.getElementById('status-badge').innerText = "CHARGING - USB ACTIVE";
-                    document.getElementById('status-badge').className = "px-4 py-1 rounded-full text-xs font-bold border border-green-500 text-green-500";
+                if (level < 80) {
+                    phase1.classList.remove('opacity-30');
+                    document.getElementById('phase-text').innerText = "Fast Charging";
+                    ampLabel.innerText = "2400 mA";
+                    wave.className = "absolute bottom-0 left-0 w-full h-1 charging-wave";
+                } else if (level < 95) {
+                    phase2.classList.remove('opacity-30');
+                    document.getElementById('phase-text').innerText = "Balanced Charge";
+                    ampLabel.innerText = "1200 mA";
                 } else {
-                    overlay.classList.remove('hidden-lock');
-                    document.getElementById('status-badge').innerText = "DISCONNECTED";
+                    phase3.classList.remove('opacity-30');
+                    document.getElementById('phase-text').innerText = "Trickle Mode";
+                    ampLabel.innerText = "450 mA";
                 }
 
-                // Update Level
-                document.getElementById('level-text').innerText = level + "%";
-                document.getElementById('level-bar').style.width = level + "%";
+                statusLabel.innerText = charging ? "POWER CONNECTED" : "DISCONNECTED";
 
-                // Update Time
-                if (battery.charging && battery.chargingTime !== Infinity) {
-                    const mins = Math.floor(battery.chargingTime / 60);
-                    document.getElementById('time-left').innerText = mins + " Mins";
-                    document.getElementById('charging-mode').innerText = "Fast Charging Active";
-                } else if (battery.charging) {
-                    document.getElementById('time-left').innerText = "Calculating...";
+                // 4. ETA Calculation
+                if (charging && battery.chargingTime !== Infinity) {
+                    const totalMins = Math.floor(battery.chargingTime / 60);
+                    const h = Math.floor(totalMins / 60);
+                    const m = totalMins % 60;
+                    document.getElementById('eta-text').innerText = `${h}h ${m}m`;
                 } else {
-                    document.getElementById('time-left').innerText = "--:--";
+                    document.getElementById('eta-text').innerText = "--:--";
                 }
 
-                // Update Chart
+                // 5. Dynamic Tips
+                const tipsArea = document.getElementById('dynamic-tips');
+                let tipsHtml = `
+                    <div class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Always use original charger.</div>
+                    <div class="flex items-center gap-2"><i class="fas fa-check text-green-500"></i> Pro monitoring is active.</div>
+                `;
+                if (level > 80) tipsHtml += `<div class="flex items-center gap-2 text-yellow-400"><i class="fas fa-circle-info"></i> Entering Balanced phase to protect cells.</div>`;
+                tipsArea.innerHTML = tipsHtml;
+
+                // 6. Update Chart Data
                 const now = new Date();
-                const timeStr = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+                const timeStr = now.getHours() + ":" + now.getMinutes();
                 
-                if (dataPoints.length > 20) {
-                    dataPoints.shift();
-                    labelPoints.shift();
+                if (levelHistory.length > 30) {
+                    levelHistory.shift();
+                    timeLabels.shift();
+                    tempHistory.shift();
                 }
                 
-                dataPoints.push(level);
-                labelPoints.push(timeStr);
-                batteryChart.update();
+                levelHistory.push(level);
+                timeLabels.push(timeStr);
+                // Simulate temperature based on charging level
+                const baseTemp = 28.5;
+                const heatFactor = charging ? (level < 80 ? 4.5 : 2.1) : 0;
+                const currentTemp = (baseTemp + heatFactor + (Math.random() * 0.5)).toFixed(1);
+                tempHistory.push(currentTemp);
+                document.getElementById('temp-label').innerText = currentTemp + "°C";
+
+                chartInstance.update();
             }
 
-            // Listeners
-            battery.addEventListener('chargingchange', updateUI);
-            battery.addEventListener('levelchange', updateUI);
+            // Events
+            battery.addEventListener('chargingchange', updateSystem);
+            battery.addEventListener('levelchange', updateSystem);
             
-            // Interval update untuk chart
-            setInterval(updateUI, 5000); 
-            updateUI();
+            setInterval(updateSystem, 5000);
+            updateSystem();
         }
 
-        // Jalankan saat load
         window.onload = () => {
             initChart();
-            monitorBattery();
+            startUltraMonitor();
         };
     </script>
 </body>
