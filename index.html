@@ -3,456 +3,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PowerFlow v5.2.0 Platinum Omni</title>
+    <title>PowerFlow v5.5.0 Pro Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <style>
         :root {
             --primary: #00f2fe;
             --secondary: #4facfe;
-            --bg: #030712;
-            --card-bg: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.1);
-            --text: #f8fafc;
-            --text-dim: #94a3b8;
-            --accent: #22c55e;
-            --perspective: 1000px;
+            --bg: #0a0f1a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text: #ffffff;
+            --accent: #00f2fe;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
         }
 
-        .light-mode {
-            --bg: #f1f5f9;
-            --card-bg: rgba(255, 255, 255, 0.8);
-            --border: rgba(0, 0, 0, 0.05);
-            --text: #0f172a;
-            --text-dim: #64748b;
-        }
+        .theme-aqua { --primary: #00f2fe; --secondary: #4facfe; --accent: #00f2fe; }
+        .theme-plasma { --primary: #f953c6; --secondary: #b91d73; --accent: #f953c6; }
+        .theme-eco { --primary: #00b09b; --secondary: #96c93d; --accent: #00b09b; }
+        .theme-volt { --primary: #f83600; --secondary: #fe8c00; --accent: #fe8c00; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; }
 
         body {
             background-color: var(--bg);
             color: var(--text);
             height: 100vh;
-            width: 100vw;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            perspective: var(--perspective);
-            transition: background 0.5s ease;
-        }
-
-        /* Ambient Glow */
-        .glow {
-            position: absolute;
-            width: 40vw;
-            height: 40vw;
-            background: radial-gradient(circle, var(--primary), transparent 70%);
-            filter: blur(100px);
-            opacity: 0.1;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        /* Main Dashboard Container */
-        .wrapper {
-            width: 95%;
-            max-width: 1000px;
-            height: 90vh;
-            max-height: 700px;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.1s ease-out;
-        }
-
-        .dashboard {
-            width: 100%;
-            height: 100%;
-            background: var(--card-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid var(--border);
-            border-radius: 40px;
-            padding: 30px;
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 30px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.5);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* USB Locked Screen */
-        #usb-screen {
-            position: absolute;
-            inset: 0;
-            background: var(--bg);
-            z-index: 100;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            text-align: center;
-            transition: 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: 0.3s;
         }
 
-        .usb-icon {
-            font-size: 80px;
-            background: linear-gradient(45deg, var(--primary), #a855f7);
+        /* Pull to Refresh Area */
+        #refresh-ptr {
+            height: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.05);
+            width: 100%;
+            transition: 0.2s;
+            font-size: 12px;
+            color: var(--primary);
+        }
+
+        /* Glass Container */
+        .glass-dashboard {
+            width: 95%;
+            max-width: 1000px;
+            height: 90vh;
+            background: var(--glass);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            padding: 25px;
+            gap: 20px;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        /* USB Shield */
+        #usb-shield {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            border-radius: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(50px);
+            transition: 0.5s ease;
+        }
+
+        /* Pixar 3D Icon Style */
+        .pixar-icon {
+            font-size: 30px;
+            background: radial-gradient(circle at 30% 30%, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: float 3s infinite ease-in-out;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+            position: relative;
         }
 
-        /* Battery Pixar Visual */
-        .battery-container {
+        /* Battery Section */
+        .battery-box {
             background: rgba(0,0,0,0.2);
             border-radius: 30px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            position: relative;
-            border: 1px solid var(--border);
+            border: 1px solid var(--glass-border);
         }
 
-        .battery-body {
-            width: 120px;
-            height: 220px;
-            border: 6px solid var(--text);
+        .battery-shell {
+            width: 110px;
+            height: 200px;
+            border: 5px solid var(--text);
             border-radius: 25px;
             position: relative;
-            padding: 6px;
+            padding: 5px;
         }
 
-        .battery-body::before {
+        .battery-shell::after {
             content: '';
             position: absolute;
-            top: -18px; left: 50%;
-            transform: translateX(-50%);
-            width: 50px; height: 12px;
-            background: var(--text);
-            border-radius: 6px 6px 0 0;
+            top: -15px; left: 50%; transform: translateX(-50%);
+            width: 45px; height: 10px; background: var(--text);
+            border-radius: 5px 5px 0 0;
         }
 
-        .liquid-area {
-            width: 100%; height: 100%;
-            border-radius: 16px;
-            overflow: hidden;
-            position: relative;
-            background: rgba(255,255,255,0.05);
+        .liquid-container {
+            width: 100%; height: 100%; border-radius: 16px;
+            overflow: hidden; position: relative; background: rgba(255,255,255,0.03);
         }
 
-        .fill {
-            position: absolute;
-            bottom: 0; width: 100%; height: 0%;
+        .liquid-fill {
+            position: absolute; bottom: 0; width: 100%; height: 0%;
             background: linear-gradient(to top, var(--secondary), var(--primary));
-            transition: height 2s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 0 40px var(--primary);
+            transition: 1s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 50px var(--primary);
         }
 
-        /* SVG Waves */
-        .waves {
-            position: absolute;
-            top: -15px; left: 0; width: 200%; height: 25px;
-            fill: var(--primary);
-            animation: waveFlow 3s linear infinite;
+        /* Bubbles Pixar Style */
+        .bubble {
+            position: absolute; background: rgba(255,255,255,0.4);
+            border-radius: 50%; animation: floatUp 3s infinite linear;
         }
 
-        @keyframes waveFlow {
-            from { transform: translateX(0); }
-            to { transform: translateX(-50%); }
+        @keyframes floatUp {
+            from { transform: translateY(100px); opacity: 0; }
+            50% { opacity: 0.6; }
+            to { transform: translateY(-200px); opacity: 0; }
         }
 
-        /* Stats Section */
-        .stats-panel {
-            display: flex;
-            flex-direction: column;
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
 
-        .top-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .grid-cards {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            flex-grow: 1;
-        }
-
-        .info-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
+        .stat-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
             padding: 15px;
-            border-radius: 20px;
             cursor: pointer;
-            transition: 0.3s;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
+            position: relative;
         }
 
-        .info-card:hover {
-            background: rgba(255,255,255,0.08);
-            transform: scale(1.03) translateZ(20px);
-        }
+        .stat-card:hover { transform: scale(1.02); background: rgba(255,255,255,0.1); }
 
-        .info-card i {
-            color: var(--primary);
-            font-size: 18px;
-            filter: drop-shadow(0 0 5px var(--primary));
-        }
-
-        .label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
-        .value { font-size: 16px; font-weight: 700; }
-
-        /* Detail Modal Reveal */
-        #detail-modal {
-            position: absolute;
-            inset: 0;
-            background: var(--bg);
-            z-index: 200;
-            border-radius: 40px;
+        .detail-info {
             display: none;
-            flex-direction: column;
-            padding: 40px;
-            animation: revealUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            padding-top: 10px;
+            font-size: 11px;
+            color: var(--primary);
+            animation: fadeIn 0.3s;
         }
 
-        @keyframes revealUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .card-active .detail-info { display: block; }
+        .card-active { grid-column: span 2; height: 120px; flex-direction: column; align-items: flex-start; }
+
+        /* Theme Selector */
+        .theme-panel {
+            position: absolute; top: 15px; right: 25px;
+            display: flex; gap: 10px; z-index: 10;
         }
 
-        .close-btn {
-            position: absolute;
-            top: 30px; right: 30px;
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            border: none; color: var(--text);
-            cursor: pointer;
+        .dot {
+            width: 25px; height: 25px; border-radius: 50%; cursor: pointer;
+            border: 2px solid white;
         }
 
-        /* Responsive Logic */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Responsive */
         @media (max-width: 800px) {
-            .dashboard { grid-template-columns: 1fr; padding: 20px; gap: 15px; }
-            .battery-container { height: 200px; }
-            .battery-body { width: 90px; height: 130px; }
-            .grid-cards { grid-template-columns: 1fr 1fr; }
-        }
-
-        @media (max-width: 400px) {
-            .grid-cards { grid-template-columns: 1fr; }
-            .dashboard { height: 95vh; }
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0); }
-            50% { transform: translateY(-20px) rotate(5deg); }
+            .glass-dashboard { grid-template-columns: 1fr; height: 95vh; padding: 15px; overflow-y: auto; }
+            .battery-shell { width: 90px; height: 150px; }
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
-<body>
+<body class="theme-aqua" id="main-body">
 
-    <div class="glow" style="top: 0; left: 0;"></div>
-    <div class="glow" style="bottom: 0; right: 0;"></div>
+    <div id="refresh-ptr"><i class="fas fa-sync fa-spin"></i> &nbsp; Syncing Pro Data...</div>
 
-    <div class="wrapper" id="scene">
-        <div class="dashboard">
-            <!-- USB LOCK -->
-            <div id="usb-screen">
-                <i class="fab fa-usb usb-icon"></i>
-                <h2 style="margin-top: 20px; letter-spacing: 4px;">SYSTEM LOCKED</h2>
-                <p style="color: var(--text-dim); margin-top: 10px;">Plug in Ultimate Pro Charger to Synchronize</p>
-                <div style="font-size: 10px; margin-top: 40px; opacity: 0.5;">POWERFLOW v5.2.0 PLATINUM OMNI</div>
-            </div>
+    <div class="glass-dashboard">
+        <!-- Theme Switcher -->
+        <div class="theme-panel">
+            <div class="dot" style="background: #00f2fe;" onclick="changeTheme('aqua')"></div>
+            <div class="dot" style="background: #f953c6;" onclick="changeTheme('plasma')"></div>
+            <div class="dot" style="background: #00b09b;" onclick="changeTheme('eco')"></div>
+            <div class="dot" style="background: #f83600;" onclick="changeTheme('volt')"></div>
+        </div>
 
-            <!-- DETAIL REVEAL MODAL -->
-            <div id="detail-modal">
-                <button class="close-btn" onclick="closeDetail()"><i class="fas fa-times"></i></button>
-                <h1 id="modal-title" style="color: var(--primary);">Detail Analytics</h1>
-                <p id="modal-desc" style="color: var(--text-dim); margin-top: 15px; line-height: 1.6;"></p>
-                <div id="modal-content" style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 20px;">
-                    <!-- Content injected by JS -->
+        <!-- USB Shield -->
+        <div id="usb-shield">
+            <i class="fab fa-usb pixar-icon" style="font-size: 80px;"></i>
+            <h2 style="margin-top: 20px;">SYSTEM DISCONNECTED</h2>
+            <p style="opacity: 0.6; font-size: 12px;">Plug in USB Cable to initialize Platinum Edition</p>
+        </div>
+
+        <!-- Left Column: Battery -->
+        <div class="battery-box">
+            <div class="battery-shell">
+                <div class="liquid-container">
+                    <div class="liquid-fill" id="fill"></div>
                 </div>
             </div>
+            <h1 id="perc" style="font-size: 50px; margin-top: 10px; font-weight: 900;">0%</h1>
+            <div id="mode-text" style="color: var(--primary); font-size: 11px; font-weight: 800; letter-spacing: 2px;">
+                SUPER VOOC 4.0
+            </div>
+        </div>
 
-            <!-- Left: Battery Pixar -->
-            <div class="battery-container">
-                <div class="battery-body">
-                    <div class="liquid-area">
-                        <div class="fill" id="liq-fill">
-                            <svg class="waves" viewBox="0 0 120 28"><path d="M0 15Q30 0 60 15t60 0v13H0z"/></svg>
-                        </div>
-                    </div>
-                </div>
-                <div id="perc-num" style="font-size: 48px; font-weight: 900; margin-top: 15px;">0%</div>
-                <div id="status-tag" style="color: var(--accent); font-size: 12px; font-weight: 800;">
-                    <i class="fas fa-bolt"></i> FAST CHARGING ACTIVE
-                </div>
+        <!-- Right Column: Details -->
+        <div class="details-box">
+            <div style="margin-bottom: 20px;">
+                <h2 style="font-size: 22px;">PowerFlow Ultimate</h2>
+                <p style="font-size: 10px; opacity: 0.5;">VERSION 5.5.0 PRO EDITION • PLATINUM</p>
             </div>
 
-            <!-- Right: Stats Panel -->
-            <div class="stats-panel">
-                <div class="top-row">
+            <div class="stats-grid">
+                <!-- Card 1 -->
+                <div class="stat-card" onclick="toggleCard(this)">
+                    <i class="fas fa-bolt-lightning pixar-icon"></i>
                     <div>
-                        <h2 style="font-size: 20px;">PowerFlow Pro</h2>
-                        <span style="font-size: 10px; background: var(--primary); color: #000; padding: 2px 8px; border-radius: 5px; font-weight: 900;">V5.2.0 OMNI</span>
-                    </div>
-                    <button onclick="toggleTheme()" style="background: none; border: 1px solid var(--border); color: var(--text); padding: 8px 15px; border-radius: 20px; cursor: pointer;">
-                        <i class="fas fa-circle-half-stroke"></i>
-                    </button>
-                </div>
-
-                <div class="grid-cards">
-                    <div class="info-card" onclick="showDetail('ETA', 'Calculated remaining time until 100% capacity based on current amperage intake.')">
-                        <i class="fas fa-clock"></i>
-                        <div>
-                            <div class="label">Time to 100%</div>
-                            <div class="value" id="eta-val">--</div>
-                        </div>
-                    </div>
-                    <div class="info-card" onclick="showDetail('Voltage', 'Live voltage monitoring. Standard Li-ion peaks at 4.4V during hyper-charge phases.')">
-                        <i class="fas fa-bolt"></i>
-                        <div>
-                            <div class="label">Voltage</div>
-                            <div class="value" id="volt-val">4.1V</div>
-                        </div>
-                    </div>
-                    <div class="info-card" onclick="showDetail('Thermal', 'Real-time temperature of the battery core. AI throttles speed if temp exceeds 45°C.')">
-                        <i class="fas fa-thermometer-half"></i>
-                        <div>
-                            <div class="label">Core Temp</div>
-                            <div class="value" id="temp-val">34°C</div>
-                        </div>
-                    </div>
-                    <div class="info-card" onclick="showDetail('Amperage', 'The flow of electric charge. High mA indicates fast charging speed.')">
-                        <i class="fas fa-microchip"></i>
-                        <div>
-                            <div class="label">Amperage</div>
-                            <div class="value" id="amp-val">2800 mA</div>
-                        </div>
-                    </div>
-                    <div class="info-card" onclick="showDetail('Health', 'Battery health algorithm based on charge cycles and chemical stability.')" style="grid-column: span 2;">
-                        <i class="fas fa-heart-pulse"></i>
-                        <div style="width: 100%;">
-                            <div class="label">Health Status</div>
-                            <div class="value" style="color: var(--accent);">Excellent Platinum (100%)</div>
-                        </div>
+                        <div style="font-size: 10px; opacity: 0.6;">TIME TO FULL</div>
+                        <div class="value" id="eta-val" style="font-size: 16px; font-weight: 700;">--</div>
+                        <div class="detail-info">Calculated based on AI charging history and hardware temperature.</div>
                     </div>
                 </div>
 
-                <div style="background: rgba(34, 197, 94, 0.1); border: 1px dashed var(--accent); padding: 12px; border-radius: 15px; font-size: 11px; text-align: center;">
-                    AI Optimization is currently protecting your battery lifespan.
+                <!-- Card 2 -->
+                <div class="stat-card" onclick="toggleCard(this)">
+                    <i class="fas fa-microchip pixar-icon"></i>
+                    <div>
+                        <div style="font-size: 10px; opacity: 0.6;">AMPERAGE</div>
+                        <div class="value" id="amp-val" style="font-size: 16px; font-weight: 700;">2800 mA</div>
+                        <div class="detail-info">Input current flow through USB-C Controller. High speed detected.</div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="stat-card" onclick="toggleCard(this)">
+                    <i class="fas fa-thermometer-half pixar-icon"></i>
+                    <div>
+                        <div style="font-size: 10px; opacity: 0.6;">TEMPERATURE</div>
+                        <div class="value" id="temp-val" style="font-size: 16px; font-weight: 700;">32.0°C</div>
+                        <div class="detail-info">Internal core thermal monitoring. Heat sink efficiency at 98%.</div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="stat-card" onclick="toggleCard(this)">
+                    <i class="fas fa-shield-heart pixar-icon"></i>
+                    <div>
+                        <div style="font-size: 10px; opacity: 0.6;">HEALTH</div>
+                        <div class="value" style="font-size: 16px; font-weight: 700; color: #10b981;">OPTIMAL</div>
+                        <div class="detail-info">No chemical degradation detected. Cycle count: 124.</div>
+                    </div>
+                </div>
+
+                <div class="stat-card card-active" style="grid-column: span 2; background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);">
+                    <i class="fas fa-circle-check pixar-icon"></i>
+                    <div>
+                        <div style="font-size: 10px; opacity: 0.6;">AI STATUS</div>
+                        <div class="value" style="font-size: 14px; font-weight: 700;">Protection Protocol Active</div>
+                        <div class="detail-info" style="display: block;">The system is dynamically adjusting voltage to prevent overheating and extend battery lifespan by 2.5x.</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const scene = document.getElementById('scene');
-        const usbScreen = document.getElementById('usb-screen');
-        const liqFill = document.getElementById('liq-fill');
-        const percNum = document.getElementById('perc-num');
-        const modal = document.getElementById('detail-modal');
-
-        // --- 1. 3D Tilt Reveal Animation ---
-        function handleMove(e) {
-            let x, y;
-            if (e.type === 'mousemove') {
-                x = e.clientX; y = e.clientY;
-            } else {
-                x = e.touches[0].clientX; y = e.touches[0].clientY;
-            }
-
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
+        // --- Theme Engine ---
+        function changeTheme(theme) {
+            const body = document.getElementById('main-body');
+            body.className = 'theme-' + theme;
             
-            // Calculate rotation (max 15 degrees)
-            const rotateY = ((x - centerX) / centerX) * 15;
-            const rotateX = ((centerY - y) / centerY) * 15;
-
-            scene.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            // Re-trigger liquid animation color
+            const fill = document.getElementById('fill');
+            fill.style.boxShadow = `0 0 50px var(--primary)`;
         }
 
-        document.addEventListener('mousemove', handleMove);
-        document.addEventListener('touchmove', handleMove);
-
-        // --- 2. Battery Logic ---
-        async function initBattery() {
-            if(!navigator.getBattery) return;
+        // --- Battery & USB Logic ---
+        async function initSystem() {
+            if (!navigator.getBattery) return;
             const battery = await navigator.getBattery();
 
-            function update() {
-                // USB Check
-                if (battery.charging) {
-                    usbScreen.style.opacity = "0";
-                    usbScreen.style.pointerEvents = "none";
-                } else {
-                    usbScreen.style.opacity = "1";
-                    usbScreen.style.pointerEvents = "all";
-                }
-
-                // UI
+            function updateUI() {
                 const level = Math.floor(battery.level * 100);
-                liqFill.style.height = level + '%';
-                percNum.innerText = level + '%';
-
-                // ETA Fix
-                if(battery.charging) {
-                    if(battery.chargingTime !== Infinity) {
-                        document.getElementById('eta-val').innerText = Math.floor(battery.chargingTime/60) + "m";
-                    } else {
-                        document.getElementById('eta-val').innerText = "~" + Math.round((100-level)*1.4) + "m";
-                    }
+                
+                // USB Shield
+                const shield = document.getElementById('usb-shield');
+                if (battery.charging) {
+                    shield.style.opacity = "0";
+                    shield.style.pointerEvents = "none";
                 } else {
-                    document.getElementById('eta-val').innerText = "Plug USB";
+                    shield.style.opacity = "1";
+                    shield.style.pointerEvents = "all";
                 }
 
-                // Sensor Simulation
-                document.getElementById('volt-val').innerText = (3.7 + (battery.level * 0.7)).toFixed(2) + "V";
-                document.getElementById('temp-val').innerText = (30 + Math.random()*5).toFixed(1) + "°C";
-                document.getElementById('amp-val').innerText = Math.floor(3000 - (level*20)) + " mA";
+                // Stats Update
+                document.getElementById('perc').innerText = level + '%';
+                document.getElementById('fill').style.height = level + '%';
+
+                // ETA Logic
+                if(battery.chargingTime !== Infinity) {
+                    document.getElementById('eta-val').innerText = Math.floor(battery.chargingTime / 60) + "m";
+                } else {
+                    document.getElementById('eta-val').innerText = "~" + Math.round((100-level)*1.2) + "m";
+                }
+
+                // Simulate Realtime Data
+                document.getElementById('temp-val').innerText = (31 + Math.random()*4).toFixed(1) + "°C";
+                document.getElementById('amp-val').innerText = Math.floor(3000 - (level*15)) + " mA";
             }
 
-            update();
-            battery.onchargingchange = update;
-            battery.onlevelchange = update;
+            updateUI();
+            battery.onchargingchange = updateUI;
+            battery.onlevelchange = updateUI;
         }
-        initBattery();
+        initSystem();
 
-        // --- 3. Detail Reveal System ---
-        function showDetail(title, desc) {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-desc').innerText = desc;
-            
-            let extra = "";
-            if(title === 'Voltage') extra = "Current stability: 99.9% <br> Phase: Constant Current (CC)";
-            if(title === 'Thermal') extra = "Cooling System: Active <br> Status: Optimal Range";
-            if(title === 'Amperage') extra = "Protocol: PD 3.0 HyperCharge <br> Input: 65W Max";
-            if(title === 'Health') extra = "Cycle Count: 142 <br> Chemical Age: 4 Months";
-            if(title === 'ETA') extra = "Estimation based on AI history and current hardware load.";
-
-            document.getElementById('modal-content').innerHTML = `<p style="font-size: 13px; line-height: 2;">${extra}</p>`;
-            
-            modal.style.display = 'flex';
+        // --- Detail Expansion ---
+        function toggleCard(el) {
+            el.classList.toggle('card-active');
         }
 
-        function closeDetail() {
-            modal.style.animation = "revealUp 0.3s reverse forwards";
-            setTimeout(() => {
-                modal.style.display = 'none';
-                modal.style.animation = "revealUp 0.5s forwards";
-            }, 300);
+        // --- Pixar Bubbles ---
+        function createBubbles() {
+            const container = document.querySelector('.liquid-container');
+            const b = document.createElement('div');
+            b.className = 'bubble';
+            const size = Math.random() * 10 + 5 + 'px';
+            b.style.width = size;
+            b.style.height = size;
+            b.style.left = Math.random() * 100 + '%';
+            container.appendChild(b);
+            setTimeout(() => b.remove(), 3000);
         }
+        setInterval(createBubbles, 400);
 
-        function toggleTheme() {
-            document.body.classList.toggle('light-mode');
-        }
+        // --- Pull to Refresh Simulation ---
+        let startY = 0;
+        const ptr = document.getElementById('refresh-ptr');
+        
+        document.addEventListener('touchstart', (e) => startY = e.touches[0].pageY);
+        document.addEventListener('touchmove', (e) => {
+            const y = e.touches[0].pageY;
+            if (y > startY && window.scrollY === 0) {
+                ptr.style.height = '50px';
+            }
+        });
+        document.addEventListener('touchend', () => {
+            setTimeout(() => ptr.style.height = '0', 1000);
+            initSystem(); // "Refresh" data
+        });
+
+        // Mouse simulated PTR
+        document.addEventListener('mousedown', (e) => startY = e.pageY);
+        document.addEventListener('mouseup', (e) => {
+            if (e.pageY > startY + 50) {
+                ptr.style.height = '50px';
+                setTimeout(() => ptr.style.height = '0', 1500);
+            }
+        });
+
     </script>
 </body>
 </html>
