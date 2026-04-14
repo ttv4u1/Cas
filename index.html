@@ -3,222 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BATT-PRO v6.0.0 | Titan Edition</title>
+    <title>BATT-PRO v7.0.0 | Eclipse Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@600;900&family=JetBrains+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Orbitron:wght@600;900&family=JetBrains+Mono&display=swap');
 
         :root {
-            --cyan: #00f2ff;
-            --green: #00ff88;
-            --dark: #030712;
-            --card: #111827;
+            --cyan: #00f7ff;
+            --electric: #3b82f6;
+            --bg: #030712;
         }
 
         body {
-            background-color: var(--dark);
-            color: #f3f4f6;
+            background: radial-gradient(circle at top right, #1e1b4b, #030712);
+            color: #f8fafc;
             font-family: 'Inter', sans-serif;
             overflow-x: hidden;
+            min-height: 100vh;
         }
 
         .orbitron { font-family: 'Orbitron', sans-serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
 
-        .glass-card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 1.5rem;
-            transition: all 0.3s ease;
+        /* Top Charging Beam */
+        #top-beam {
+            position: fixed; top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+            background-size: 200% 100%;
+            z-index: 10001;
+            display: none;
+            animation: beamFlow 1.5s linear infinite;
+        }
+        @keyframes beamFlow {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
 
-        .glass-card:hover { border-color: var(--cyan); }
-
-        #lock-overlay {
-            position: fixed; inset: 0; background: var(--dark); z-index: 9999;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Realistic Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
         }
 
-        body.unlocked #lock-overlay { 
-            opacity: 0; pointer-events: none; transform: scale(1.1) translateY(-50px); 
+        /* Electric Animation */
+        .electric-arc {
+            stroke-dasharray: 100;
+            animation: arcMove 2s linear infinite;
+        }
+        @keyframes arcMove {
+            from { stroke-dashoffset: 200; }
+            to { stroke-dashoffset: 0; }
         }
 
-        /* Gauge Animation */
-        .progress-ring { transition: stroke-dashoffset 0.8s ease; transform: rotate(-90deg); transform-origin: 50% 50%; }
+        /* Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        /* Custom Scroll */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 10px; }
+        #lock-screen {
+            position: fixed; inset: 0; background: rgba(3, 7, 18, 0.98); z-index: 10000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body.unlocked #lock-screen { opacity: 0; pointer-events: none; transform: scale(1.1); }
+
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+
     </style>
 </head>
-<body class="p-3 md:p-6 lg:p-10">
+<body class="p-4 md:p-8">
 
-    <!-- VERSION TAG -->
-    <div class="fixed top-2 right-4 z-[10000] text-[10px] mono text-cyan-500 font-bold bg-cyan-500/10 px-2 py-1 rounded border border-cyan-500/20">
-        VER 6.0.0
-    </div>
+    <div id="top-beam"></div>
 
-    <!-- LOCK SCREEN (USB DETECTION) -->
-    <div id="lock-overlay">
-        <div class="text-center p-6 max-w-sm">
-            <div class="relative mb-8">
-                <i class="fas fa-bolt-lightning text-7xl text-cyan-400 animate-bounce"></i>
-                <div class="absolute inset-0 blur-3xl bg-cyan-400/20"></div>
-            </div>
-            <h1 class="orbitron text-2xl font-black mb-2 tracking-tighter">BATT-PRO <span class="text-cyan-400">TITAN</span></h1>
-            <p class="text-xs text-gray-500 mb-8 uppercase tracking-widest">Connect USB Hardware to start analyzing</p>
-            <button onclick="unlockManual()" class="w-full py-4 glass-card text-[10px] font-bold tracking-widest text-cyan-400 hover:bg-cyan-400/10 uppercase">
-                Manual Sync (iOS/Safari)
-            </button>
+    <!-- LOCK SCREEN -->
+    <div id="lock-screen">
+        <div class="relative mb-8 reveal">
+            <i class="fas fa-bolt-lightning text-8xl text-cyan-400 animate-pulse"></i>
+            <div class="absolute -inset-10 blur-3xl bg-cyan-500/20"></div>
         </div>
+        <h1 class="orbitron text-3xl font-black mb-2 reveal stagger-1">BATT-PRO <span class="text-cyan-400">ULTIMATE</span></h1>
+        <p class="text-[10px] mono text-gray-500 tracking-[0.5em] mb-10 reveal stagger-2">VERSION 7.0.0 ECLIPSE</p>
+        <button onclick="unlock()" class="px-10 py-4 glass text-xs font-bold tracking-widest text-cyan-400 hover:bg-cyan-400/10 reveal stagger-3">
+            INITIALIZE SYSTEM
+        </button>
     </div>
 
     <div class="max-w-7xl mx-auto">
-        
         <!-- HEADER -->
-        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <header class="flex justify-between items-end mb-10 reveal">
             <div>
-                <h1 class="orbitron text-2xl font-black text-white italic">BATT-PRO <span class="text-cyan-400">TITAN</span></h1>
-                <p id="device-info" class="text-[10px] mono text-gray-500 uppercase tracking-widest">Detecting System...</p>
+                <p class="text-[10px] font-bold text-cyan-500 tracking-[0.4em] mb-1">PRO DIAGNOSTIC CONSOLE</p>
+                <h1 class="orbitron text-2xl font-black italic">ECLIPSE <span class="text-cyan-400">ENGINE</span></h1>
             </div>
-            <div class="flex items-center gap-3">
-                <div class="text-right hidden sm:block">
-                    <p class="text-[9px] text-gray-500 font-bold uppercase">System Status</p>
-                    <p id="status-text" class="text-xs font-bold text-green-500">READY</p>
-                </div>
-                <button onclick="exportData()" class="p-3 glass-card text-xs hover:text-cyan-400">
-                    <i class="fas fa-file-export"></i>
-                </button>
+            <div class="text-right hidden sm:block">
+                <p class="text-[9px] mono text-gray-500">BUILD ID: 7.0.0-PRO</p>
+                <p id="clock" class="text-lg font-bold mono">00:00:00</p>
             </div>
         </header>
 
-        <!-- MAIN STATS GRID -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="glass-card p-5">
-                <p class="text-[10px] text-gray-500 font-bold uppercase mb-3">Input Power</p>
-                <div class="flex items-baseline gap-1">
-                    <span id="watt-val" class="text-3xl font-black orbitron text-cyan-400">0.0</span>
-                    <span class="text-[10px] font-bold">W</span>
-                </div>
-            </div>
-            <div class="glass-card p-5">
-                <p class="text-[10px] text-gray-500 font-bold uppercase mb-3">Suhu Inti</p>
-                <div class="flex items-baseline gap-1">
-                    <span id="temp-val" class="text-3xl font-black orbitron text-orange-400">0.0</span>
-                    <span class="text-[10px] font-bold">°C</span>
-                </div>
-            </div>
-            <div class="glass-card p-5">
-                <p class="text-[10px] text-gray-500 font-bold uppercase mb-3">Arus Masuk</p>
-                <div class="flex items-baseline gap-1">
-                    <span id="amp-val" class="text-3xl font-black orbitron text-green-400">0</span>
-                    <span class="text-[10px] font-bold">mA</span>
-                </div>
-            </div>
-            <div class="glass-card p-5">
-                <p class="text-[10px] text-gray-500 font-bold uppercase mb-3">Voltase</p>
-                <div class="flex items-baseline gap-1">
-                    <span id="volt-val" class="text-3xl font-black orbitron text-blue-400">4.2</span>
-                    <span class="text-[10px] font-bold">V</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- ANALYTICS & GAUGE -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            <!-- CHARGE CURVE -->
-            <div class="lg:col-span-2 glass-card p-6 min-h-[350px]">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-xs font-bold uppercase text-cyan-500 tracking-widest">Real-time Power Dynamics</h3>
-                    <div class="flex gap-4 text-[9px] mono text-gray-500">
-                        <span class="flex items-center gap-1"><i class="fas fa-circle text-cyan-400"></i> LEVEL</span>
-                        <span class="flex items-center gap-1"><i class="fas fa-circle text-orange-400"></i> TEMP</span>
+            <!-- LEFT: STATS -->
+            <div class="lg:col-span-3 space-y-4 reveal stagger-1">
+                <div class="glass p-6">
+                    <p class="text-[10px] text-gray-500 font-bold mb-2 uppercase">Input Power</p>
+                    <div class="flex items-baseline gap-2">
+                        <span id="watt" class="text-3xl font-black orbitron text-cyan-400">0.0</span>
+                        <span class="text-xs font-bold text-gray-600">Watt</span>
                     </div>
                 </div>
-                <div class="h-[250px] w-full">
-                    <canvas id="titanChart"></canvas>
+                <div class="glass p-6">
+                    <p class="text-[10px] text-gray-500 font-bold mb-2 uppercase">Current Flow</p>
+                    <div class="flex items-baseline gap-2">
+                        <span id="amp" class="text-3xl font-black orbitron text-emerald-400">0</span>
+                        <span class="text-xs font-bold text-gray-600">mA</span>
+                    </div>
+                </div>
+                <div class="glass p-6">
+                    <p class="text-[10px] text-gray-500 font-bold mb-2 uppercase">Resistance</p>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-3xl font-black orbitron text-amber-400">102</span>
+                        <span class="text-xs font-bold text-gray-600">mΩ</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- PERCENTAGE & TIME -->
-            <div class="space-y-6">
-                <div class="glass-card p-8 flex flex-col items-center justify-center relative overflow-hidden">
-                    <!-- Gauge -->
-                    <svg class="w-44 h-44">
-                        <circle cx="88" cy="88" r="80" stroke="currentColor" stroke-width="6" fill="transparent" class="text-white/5" />
-                        <circle id="gauge-circle" cx="88" cy="88" r="80" stroke="currentColor" stroke-width="10" fill="transparent" 
-                            stroke-dasharray="502.4" stroke-dashoffset="502.4" stroke-linecap="round"
-                            class="text-cyan-400 progress-ring" />
+            <!-- CENTER: CORE GAUGE -->
+            <div class="lg:col-span-6 reveal stagger-2">
+                <div class="glass p-8 h-full flex flex-col items-center justify-center relative overflow-hidden">
+                    <!-- Electric Flow SVG -->
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-20">
+                        <path d="M 0 50 Q 50 0 100 50 T 200 50" fill="none" stroke="cyan" stroke-width="2" class="electric-arc" />
+                        <path d="M 0 150 Q 50 100 100 150 T 200 150" fill="none" stroke="cyan" stroke-width="2" class="electric-arc" style="animation-delay: -1s" />
                     </svg>
-                    <div class="absolute inset-0 flex flex-col justify-center items-center">
-                        <span id="perc-main" class="text-5xl font-black orbitron tracking-tighter">0%</span>
-                        <span id="phase-tag" class="text-[9px] font-bold text-cyan-500 mt-1 uppercase tracking-widest">Analysing...</span>
+
+                    <div class="relative">
+                        <svg class="w-64 h-64 transform -rotate-90">
+                            <circle cx="128" cy="128" r="110" stroke="rgba(255,255,255,0.05)" stroke-width="4" fill="transparent" />
+                            <circle id="ring" cx="128" cy="128" r="110" stroke="var(--cyan)" stroke-width="12" fill="transparent" 
+                                stroke-dasharray="691" stroke-dashoffset="691" stroke-linecap="round"
+                                class="transition-all duration-1000 ease-out" style="filter: drop-shadow(0 0 10px var(--cyan))" />
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col justify-center items-center">
+                            <span id="perc" class="text-7xl font-black orbitron tracking-tighter">0%</span>
+                            <span id="status-label" class="text-[10px] font-bold text-cyan-500 tracking-[0.3em] uppercase mt-2">Standby</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 grid grid-cols-2 gap-10 w-full text-center">
+                        <div>
+                            <p class="text-[9px] text-gray-500 uppercase font-bold">Health</p>
+                            <p class="text-lg font-bold text-emerald-400">98.2%</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] text-gray-500 uppercase font-bold">Cycles</p>
+                            <p class="text-lg font-bold">142</p>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="glass-card p-6">
-                    <p class="text-[10px] text-gray-500 font-bold uppercase mb-4 tracking-widest">Time to Full (100%)</p>
-                    <div class="flex items-center justify-between">
-                        <span id="eta-val" class="text-4xl font-black orbitron tracking-tighter">--:--</span>
-                        <i class="fas fa-clock-rotate-left text-2xl text-cyan-900"></i>
+            <!-- RIGHT: ANALYTICS -->
+            <div class="lg:col-span-3 space-y-4 reveal stagger-3">
+                <div class="glass p-6 border-t-4 border-orange-500">
+                    <p class="text-[10px] text-gray-500 font-bold mb-2 uppercase tracking-widest">Temperature</p>
+                    <div class="flex items-baseline gap-2">
+                        <span id="temp" class="text-3xl font-black orbitron text-orange-400">0.0</span>
+                        <span class="text-xs font-bold text-gray-600">°C</span>
                     </div>
-                    <div class="mt-4 pt-4 border-t border-white/5">
-                        <p class="text-[9px] text-gray-400 italic" id="tip-text">Sistem sedang menghitung pola pengisian perangkat Anda...</p>
+                </div>
+                <div class="glass p-6">
+                    <p class="text-[10px] text-gray-500 font-bold mb-2 uppercase tracking-widest">Efficiency</p>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-3xl font-black orbitron text-blue-400">94.8</span>
+                        <span class="text-xs font-bold text-gray-600">%</span>
+                    </div>
+                </div>
+                <div class="glass p-6 border-b-4 border-cyan-500">
+                    <p class="text-[10px] text-gray-500 font-bold mb-2 uppercase tracking-widest">EST. REMAINING</p>
+                    <div class="flex items-baseline gap-2">
+                        <span id="eta" class="text-2xl font-black orbitron">--:--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTTOM: CHART -->
+            <div class="lg:col-span-12 reveal stagger-4">
+                <div class="glass p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-cyan-500">Power Analytics Curve</h3>
+                        <button onclick="downloadCSV()" class="text-[10px] font-bold bg-white/5 px-3 py-1 rounded-full border border-white/10 hover:bg-white/10">
+                            <i class="fas fa-download mr-2"></i> DOWNLOAD LOG
+                        </button>
+                    </div>
+                    <div class="h-[200px] w-full">
+                        <canvas id="mainChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- FOOTER PRO MODULES -->
-        <footer class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="glass-card p-6 flex items-center justify-between bg-gradient-to-r from-cyan-500/5 to-transparent">
-                <div>
-                    <h4 class="text-xs font-bold text-cyan-400 mb-1">PRO PROTECTION</h4>
-                    <p class="text-[10px] text-gray-500">Sistem monitoring panas dan lonjakan arus aktif secara real-time.</p>
-                </div>
-                <i class="fas fa-shield-halved text-3xl text-cyan-900"></i>
-            </div>
-            <div class="flex items-center justify-center p-4">
-                <p class="text-[10px] mono text-gray-600 font-bold tracking-[0.4em]">BATT-PRO TITAN EDITION v6.0.0 // 2024</p>
-            </div>
+        <footer class="mt-10 text-center reveal stagger-4">
+            <p class="text-[9px] mono text-gray-600 tracking-[0.5em] font-bold">BATT-PRO ULTIMATE v7.0.0 // ECLIPSE EDITION</p>
         </footer>
-
     </div>
 
     <script>
-        // CONFIGURATION v6.0.0
-        let titanChart;
-        const ctx = document.getElementById('titanChart').getContext('2d');
-        const historyLimit = 30;
-        const telemetry = { level: [], temp: [], labels: [] };
+        let chart;
+        const telemetry = { level: [], labels: [], temp: [] };
 
         function initChart() {
-            titanChart = new Chart(ctx, {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            chart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: telemetry.labels,
                     datasets: [
                         {
                             data: telemetry.level,
-                            borderColor: '#00f2ff',
-                            borderWidth: 3,
-                            pointRadius: 0,
+                            borderColor: '#00f7ff',
+                            borderWidth: 2,
                             fill: true,
-                            backgroundColor: 'rgba(0, 242, 252, 0.05)',
-                            tension: 0.4
+                            backgroundColor: 'rgba(0, 247, 255, 0.05)',
+                            tension: 0.4,
+                            pointRadius: 0
                         },
                         {
                             data: telemetry.temp,
                             borderColor: '#f97316',
                             borderWidth: 1,
-                            pointRadius: 0,
                             borderDash: [5, 5],
                             tension: 0.4,
+                            pointRadius: 0,
                             yAxisID: 'y1'
                         }
                     ]
@@ -226,113 +256,102 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: { duration: 400 },
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { display: false, min: 0, max: 100 },
-                        y1: { display: false, min: 20, max: 50 },
+                        y: { display: false, min: 0, max: 105 },
+                        y1: { display: false, min: 20, max: 50, position: 'right' },
                         x: { display: false }
                     }
                 }
             });
         }
 
-        async function engineStart() {
+        async function startSystem() {
             if (!('getBattery' in navigator)) return;
             const battery = await navigator.getBattery();
 
-            function sync() {
-                const level = battery.level * 100;
-                const isCharging = battery.charging;
+            function update() {
+                const lvl = battery.level * 100;
+                const char = battery.charging;
 
-                // Lock System
-                if (isCharging) document.body.classList.add('unlocked');
-                else document.body.classList.remove('unlocked');
+                // Sync UI
+                document.getElementById('perc').innerText = Math.floor(lvl) + "%";
+                document.getElementById('ring').style.strokeDashoffset = 691 - (691 * lvl / 100);
+                document.getElementById('status-label').innerText = char ? "Rapid Charging" : "Discharging";
+                
+                // Top Beam & Flow Animation
+                const beam = document.getElementById('top-beam');
+                if (char) {
+                    beam.style.display = 'block';
+                    document.body.classList.add('unlocked');
+                } else {
+                    beam.style.display = 'none';
+                    document.body.classList.remove('unlocked');
+                }
 
-                // UI Progress
-                document.getElementById('perc-main').innerText = Math.floor(level) + "%";
-                const offset = 502.4 - (502.4 * level / 100);
-                document.getElementById('gauge-circle').style.strokeDashoffset = offset;
-
-                // Smart ETA Fix
-                const etaLabel = document.getElementById('eta-val');
-                if (isCharging && battery.chargingTime !== Infinity) {
+                // ETA Logic
+                if (char && battery.chargingTime !== Infinity) {
                     const h = Math.floor(battery.chargingTime / 3600);
                     const m = Math.floor((battery.chargingTime % 3600) / 60);
-                    etaLabel.innerText = h > 0 ? `${h}h ${m}m` : `${m}m`;
-                } else if (isCharging) {
-                    const rem = 100 - level;
-                    etaLabel.innerText = `~${Math.floor(rem * 1.5)}m`;
+                    document.getElementById('eta').innerText = h > 0 ? `${h}h ${m}m` : `${m} Mins`;
+                } else if (char) {
+                    document.getElementById('eta').innerText = `~${Math.floor((100 - lvl) * 1.5)}m`;
                 } else {
-                    etaLabel.innerText = "--:--";
+                    document.getElementById('eta').innerText = "--:--";
                 }
 
-                // Phase Detection
-                const phase = document.getElementById('phase-tag');
-                const tip = document.getElementById('tip-text');
-                if (level < 80) {
-                    phase.innerText = "Rapid Charging";
-                    tip.innerText = "Gunakan charger asli untuk performa maksimal pada fase Rapid.";
-                } else if (level < 99) {
-                    phase.innerText = "Balanced Phase";
-                    tip.innerText = "Sistem menurunkan arus untuk menjaga suhu sel baterai.";
-                } else {
-                    phase.innerText = "Trickle Mode";
-                    tip.innerText = "Hampir penuh. Mengoptimalkan tegangan akhir.";
-                }
+                // Realistic Mock Data
+                const mockW = char ? (lvl < 80 ? 18.2 + Math.random() : 5.1 + Math.random()).toFixed(1) : "0.0";
+                const mockA = char ? (lvl < 80 ? 2600 + Math.floor(Math.random()*100) : 900 + Math.floor(Math.random()*50)) : "0";
+                const mockT = (29 + (lvl/10) + (char ? 3 : 0) + Math.random()).toFixed(1);
 
-                // Telemetry Simulation (Realistic)
-                const mockWatt = isCharging ? (level < 80 ? (18 + Math.random() * 5) : (5 + Math.random() * 2)).toFixed(1) : "0.0";
-                const mockTemp = (29 + (level/12) + (isCharging ? 3 : 0) + Math.random()).toFixed(1);
-                const mockAmp = isCharging ? (level < 80 ? 2500 + Math.floor(Math.random()*200) : 800 + Math.floor(Math.random()*50)) : "0";
+                document.getElementById('watt').innerText = mockW;
+                document.getElementById('amp').innerText = mockA;
+                document.getElementById('temp').innerText = mockT;
 
-                document.getElementById('watt-val').innerText = mockWatt;
-                document.getElementById('temp-val').innerText = mockTemp;
-                document.getElementById('amp-val').innerText = mockAmp;
-                document.getElementById('status-text').innerText = isCharging ? "CHARGING" : "DISCONNECTED";
-                document.getElementById('status-text').className = isCharging ? "text-xs font-bold text-green-500" : "text-xs font-bold text-gray-500";
-
-                // Update Chart
+                // Chart Update
                 const now = new Date();
                 telemetry.labels.push(now.getSeconds());
-                telemetry.level.push(level);
-                telemetry.temp.push(mockTemp);
-                if (telemetry.labels.length > historyLimit) {
+                telemetry.level.push(lvl);
+                telemetry.temp.push(mockT);
+                if (telemetry.labels.length > 30) {
                     telemetry.labels.shift();
                     telemetry.level.shift();
                     telemetry.temp.shift();
                 }
-                titanChart.update();
+                chart.update('none');
             }
 
-            battery.addEventListener('chargingchange', sync);
-            battery.addEventListener('levelchange', sync);
-            setInterval(sync, 2000);
-            sync();
+            battery.addEventListener('chargingchange', update);
+            battery.addEventListener('levelchange', update);
+            setInterval(update, 1000);
+            update();
         }
 
-        function unlockManual() {
+        function unlock() {
             document.body.classList.add('unlocked');
-            document.getElementById('device-info').innerText = "VIRTUAL-SYNC ACTIVE";
+            document.getElementById('top-beam').style.display = 'block';
         }
 
-        function exportData() {
+        function downloadCSV() {
             let csv = "Time,Level,Temp\n";
-            telemetry.level.forEach((val, i) => {
-                csv += `${i},${val}%,${telemetry.temp[i]}C\n`;
-            });
+            telemetry.level.forEach((v, i) => csv += `${i},${v}%,${telemetry.temp[i]}C\n`);
             const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `BATT-PRO-v6-LOG.csv`;
+            a.download = "BATT_PRO_V7_LOG.csv";
             a.click();
+        }
+
+        function updateClock() {
+            document.getElementById('clock').innerText = new Date().toTimeString().split(' ')[0];
         }
 
         window.onload = () => {
             initChart();
-            engineStart();
-            document.getElementById('device-info').innerText = `${navigator.platform} // TITAN CORE`;
+            startSystem();
+            setInterval(updateClock, 1000);
         };
     </script>
 </body>
