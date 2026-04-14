@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Futuristic Power Core</title>
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-purple: #bc13fe;
+            --bg-dark: #050505;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Background Animated Grid */
+        .grid-bg {
+            position: fixed;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform: perspective(500px) rotateX(60deg);
+            animation: moveGrid 20s linear infinite;
+            z-index: -1;
+            top: -50%;
+        }
+
+        @keyframes moveGrid {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(40px); }
+        }
+
+        /* Container & Reveal Animation */
+        .container {
+            width: 90%;
+            max-width: 380px;
+            background: rgba(10, 10, 10, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 20px var(--neon-blue);
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .container.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Battery Visual */
+        .battery-box {
+            width: 100px;
+            height: 180px;
+            border: 3px solid #333;
+            border-radius: 15px;
+            margin: 20px auto;
+            position: relative;
+            padding: 4px;
+        }
+
+        .battery-box::after {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 10px;
+            background: #333;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .charge-level {
+            width: 100%;
+            height: 0%;
+            background: linear-gradient(0deg, var(--neon-purple), var(--neon-blue));
+            border-radius: 10px;
+            transition: height 1s ease-in-out;
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            width: calc(100% - 8px);
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        /* Charging Animation Overlay */
+        .charging-wave {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(transparent, rgba(255,255,255,0.3), transparent);
+            animation: wave 1.5s infinite;
+        }
+
+        @keyframes wave {
+            0% { transform: translateY(100%); }
+            100% { transform: translateY(-100%); }
+        }
+
+        .is-charging .charging-wave {
+            display: block;
+        }
+
+        .percent-text {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .status-text {
+            font-size: 0.8rem;
+            color: #0f0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        /* Info Display */
+        .info-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+            border-top: 1px solid #333;
+            padding-top: 20px;
+        }
+
+        .info-card {
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+        }
+
+        .info-card label {
+            display: block;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-card span {
+            color: var(--neon-blue);
+            font-weight: bold;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: var(--neon-blue);
+            opacity: 0.3;
+            position: absolute;
+            top: 0;
+            animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        .btn-start {
+            background: transparent;
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-start:hover {
+            background: var(--neon-blue);
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-bg"></div>
+
+    <div class="container" id="mainCore">
+        <div class="scanline"></div>
+        <div class="status-text" id="sys-status">Initializing...</div>
+        
+        <div class="percent-text" id="display-percent">--%</div>
+
+        <div class="battery-box" id="batteryContainer">
+            <div class="charge-level" id="level-fill"></div>
+            <div class="charging-wave"></div>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-card">
+                <label>SOURCE</label>
+                <span id="pwr-source">DETECTING...</span>
+            </div>
+            <div class="info-card">
+                <label>TIME TO FULL</label>
+                <span id="time-left">CALCULATING</span>
+            </div>
+            <div class="info-card">
+                <label>VOLTAGE</label>
+                <span>4.20V AUTO</span>
+            </div>
+            <div class="info-card">
+                <label>HEALTH</label>
+                <span style="color: #0f0;">OPTIMAL</span>
+            </div>
+        </div>
+
+        <p style="font-size: 10px; margin-top: 20px; color: #444;">POWER CORE SYSTEM V.2.0</p>
+    </div>
+
+    <script>
+        const mainCore = document.getElementById('mainCore');
+        const fill = document.getElementById('level-fill');
+        const percentText = document.getElementById('display-percent');
+        const statusText = document.getElementById('sys-status');
+        const pwrSource = document.getElementById('pwr-source');
+        const timeLeft = document.getElementById('time-left');
+        const batteryContainer = document.getElementById('batteryContainer');
+
+        // 1. Force Reveal (Mencegah layar kosong)
+        window.onload = () => {
+            mainCore.classList.add('active');
+            initBattery();
+        };
+
+        async function initBattery() {
+            try {
+                if ('getBattery' in navigator) {
+                    const battery = await navigator.getBattery();
+                    
+                    const updateUI = () => {
+                        const level = Math.round(battery.level * 100);
+                        fill.style.height = level + '%';
+                        percentText.innerText = level + '%';
+
+                        if (battery.charging) {
+                            statusText.innerText = "⚡ SYSTEM CHARGING";
+                            statusText.style.color = "#00f3ff";
+                            pwrSource.innerText = "USB-C / LIGHTNING";
+                            batteryContainer.classList.add('is-charging');
+                            
+                            if(battery.chargingTime !== Infinity) {
+                                timeLeft.innerText = Math.round(battery.chargingTime / 60) + " MINS";
+                            } else {
+                                timeLeft.innerText = "DETECTING...";
+                            }
+                        } else {
+                            statusText.innerText = "DISCHARGING";
+                            statusText.style.color = "#ff3300";
+                            pwrSource.innerText = "BATTERY MODE";
+                            batteryContainer.classList.remove('is-charging');
+                            timeLeft.innerText = "PLUG USB";
+                        }
+                    };
+
+                    updateUI();
+                    battery.addEventListener('chargingchange', updateUI);
+                    battery.addEventListener('levelchange', updateUI);
+                } else {
+                    // Fallback untuk iPhone/Safari yang memblokir API baterai
+                    useDemoMode("Not Supported by Browser");
+                }
+            } catch (e) {
+                useDemoMode("System Restricted");
+            }
+        }
+
+        // Mode Simulasi jika API dilarang browser
+        function useDemoMode(reason) {
+            statusText.innerText = "DEMO MODE (API LOCKED)";
+            pwrSource.innerText = "REASON: " + reason;
+            percentText.innerText = "85%";
+            fill.style.height = "85%";
+            timeLeft.innerText = "USB READY";
+            
+            // Tetap berikan animasi agar web terlihat "hidup"
+            setInterval(() => {
+                batteryContainer.classList.toggle('is-charging');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
