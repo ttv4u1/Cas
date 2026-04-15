@@ -2,390 +2,398 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PowerFlow v5.5.0 Pro Edition</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voltix Pro - AI Smart Charge</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+
         :root {
-            --primary: #00f2fe;
-            --secondary: #4facfe;
-            --bg: #0a0f1a;
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.12);
-            --text: #ffffff;
-            --accent: #00f2fe;
-            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --accent-blue: #00d2ff;
+            --accent-green: #34e89e;
+            --text-color: #ffffff;
         }
-
-        .theme-aqua { --primary: #00f2fe; --secondary: #4facfe; --accent: #00f2fe; }
-        .theme-plasma { --primary: #f953c6; --secondary: #b91d73; --accent: #f953c6; }
-        .theme-eco { --primary: #00b09b; --secondary: #96c93d; --accent: #00b09b; }
-        .theme-volt { --primary: #f83600; --secondary: #fe8c00; --accent: #fe8c00; }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; }
 
         body {
-            background-color: var(--bg);
-            color: var(--text);
-            height: 100vh;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: var(--text-color);
+            transition: all 0.5s ease;
+            overflow-x: hidden;
+        }
+
+        body.grey-mode {
+            background: linear-gradient(135deg, #2c3e50, #4ca1af);
+        }
+
+        /* Glassmorphism Card */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* 3D Pixar Style Icon Effect */
+        .icon-3d {
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .icon-3d:hover { transform: scale(1.1) rotate(5deg); }
+
+        /* Real-time Charging Animation (Water + Electric) */
+        .battery-container {
+            width: 120px;
+            height: 200px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .water {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 65%; /* Dynamic */
+            background: linear-gradient(to top, #00d2ff, #3a7bd5);
+            transition: height 1s ease;
+        }
+
+        .water::after {
+            content: "";
+            position: absolute;
+            top: -20px;
+            left: -50%;
+            width: 200%;
+            height: 40px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 40%;
+            animation: wave 3s infinite linear;
+        }
+
+        @keyframes wave {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .lightning {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: #fff;
+            text-shadow: 0 0 20px #ff0, 0 0 40px #ff0;
+            z-index: 10;
+            animation: flicker 1.5s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .lock-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(0,0,0,0.8);
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(15px);
+        }
+
+        .hidden-content { display: none; }
+
+        /* Toggle Switch */
+        .switch {
+            width: 50px;
+            height: 26px;
+            background: #ccc;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+        }
+        .switch.on { background: var(--accent-green); }
+        .switch-dot {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
             transition: 0.3s;
         }
-
-        /* Pull to Refresh Area */
-        #refresh-ptr {
-            height: 0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.05);
-            width: 100%;
-            transition: 0.2s;
-            font-size: 12px;
-            color: var(--primary);
-        }
-
-        /* Glass Container */
-        .glass-dashboard {
-            width: 95%;
-            max-width: 1000px;
-            height: 90vh;
-            background: var(--glass);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--glass-border);
-            border-radius: 40px;
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            padding: 25px;
-            gap: 20px;
-            box-shadow: var(--shadow);
-            position: relative;
-        }
-
-        /* USB Shield */
-        #usb-shield {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            border-radius: 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(50px);
-            transition: 0.5s ease;
-        }
-
-        /* Pixar 3D Icon Style */
-        .pixar-icon {
-            font-size: 30px;
-            background: radial-gradient(circle at 30% 30%, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
-            position: relative;
-        }
-
-        /* Battery Section */
-        .battery-box {
-            background: rgba(0,0,0,0.2);
-            border-radius: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--glass-border);
-        }
-
-        .battery-shell {
-            width: 110px;
-            height: 200px;
-            border: 5px solid var(--text);
-            border-radius: 25px;
-            position: relative;
-            padding: 5px;
-        }
-
-        .battery-shell::after {
-            content: '';
-            position: absolute;
-            top: -15px; left: 50%; transform: translateX(-50%);
-            width: 45px; height: 10px; background: var(--text);
-            border-radius: 5px 5px 0 0;
-        }
-
-        .liquid-container {
-            width: 100%; height: 100%; border-radius: 16px;
-            overflow: hidden; position: relative; background: rgba(255,255,255,0.03);
-        }
-
-        .liquid-fill {
-            position: absolute; bottom: 0; width: 100%; height: 0%;
-            background: linear-gradient(to top, var(--secondary), var(--primary));
-            transition: 1s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 50px var(--primary);
-        }
-
-        /* Bubbles Pixar Style */
-        .bubble {
-            position: absolute; background: rgba(255,255,255,0.4);
-            border-radius: 50%; animation: floatUp 3s infinite linear;
-        }
-
-        @keyframes floatUp {
-            from { transform: translateY(100px); opacity: 0; }
-            50% { opacity: 0.6; }
-            to { transform: translateY(-200px); opacity: 0; }
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .stat-card {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 25px;
-            padding: 15px;
-            cursor: pointer;
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            position: relative;
-        }
-
-        .stat-card:hover { transform: scale(1.02); background: rgba(255,255,255,0.1); }
-
-        .detail-info {
-            display: none;
-            padding-top: 10px;
-            font-size: 11px;
-            color: var(--primary);
-            animation: fadeIn 0.3s;
-        }
-
-        .card-active .detail-info { display: block; }
-        .card-active { grid-column: span 2; height: 120px; flex-direction: column; align-items: flex-start; }
-
-        /* Theme Selector */
-        .theme-panel {
-            position: absolute; top: 15px; right: 25px;
-            display: flex; gap: 10px; z-index: 10;
-        }
-
-        .dot {
-            width: 25px; height: 25px; border-radius: 50%; cursor: pointer;
-            border: 2px solid white;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Responsive */
-        @media (max-width: 800px) {
-            .glass-dashboard { grid-template-columns: 1fr; height: 95vh; padding: 15px; overflow-y: auto; }
-            .battery-shell { width: 90px; height: 150px; }
-            .stats-grid { grid-template-columns: 1fr; }
-        }
+        .switch.on .switch-dot { left: 27px; }
     </style>
 </head>
-<body class="theme-aqua" id="main-body">
+<body class="p-4 md:p-8">
 
-    <div id="refresh-ptr"><i class="fas fa-sync fa-spin"></i> &nbsp; Syncing Pro Data...</div>
-
-    <div class="glass-dashboard">
-        <!-- Theme Switcher -->
-        <div class="theme-panel">
-            <div class="dot" style="background: #00f2fe;" onclick="changeTheme('aqua')"></div>
-            <div class="dot" style="background: #f953c6;" onclick="changeTheme('plasma')"></div>
-            <div class="dot" style="background: #00b09b;" onclick="changeTheme('eco')"></div>
-            <div class="dot" style="background: #f83600;" onclick="changeTheme('volt')"></div>
+    <!-- USB Lock Screen -->
+    <div id="usb-lock" class="lock-screen">
+        <div class="text-center p-8 glass-panel max-w-sm">
+            <img src="https://cdn-icons-png.flaticon.com/512/3050/3050187.png" class="w-24 mx-auto mb-6 icon-3d" alt="USB">
+            <h2 id="txt-connect" class="text-2xl font-bold mb-2">USB Disconnected</h2>
+            <p id="txt-sub-connect" class="text-sm opacity-70 mb-6">Please connect your phone via USB to access Pro features.</p>
+            <button onclick="simulateConnect()" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-full font-bold transition-all transform hover:scale-105">
+                Simulate Connection
+            </button>
         </div>
+    </div>
 
-        <!-- USB Shield -->
-        <div id="usb-shield">
-            <i class="fab fa-usb pixar-icon" style="font-size: 80px;"></i>
-            <h2 style="margin-top: 20px;">SYSTEM DISCONNECTED</h2>
-            <p style="opacity: 0.6; font-size: 12px;">Plug in USB Cable to initialize Platinum Edition</p>
-        </div>
+    <!-- Main Dashboard -->
+    <div id="main-ui" class="hidden-content max-w-6xl mx-auto">
+        
+        <!-- Header -->
+        <header class="flex flex-wrap justify-between items-center mb-8 gap-4 reveal">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight">VOLTIX <span class="text-blue-400">PRO</span></h1>
+                <p id="txt-status" class="text-sm opacity-80 italic">Optimizing for iPhone 15 Pro Max...</p>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="toggleLang()" class="glass-panel px-4 py-2 text-xs font-bold uppercase tracking-widest">EN / MY</button>
+                <button onclick="toggleTheme()" class="glass-panel px-4 py-2 text-xs font-bold uppercase tracking-widest">
+                    <i class="fas fa-palette"></i>
+                </button>
+            </div>
+        </header>
 
-        <!-- Left Column: Battery -->
-        <div class="battery-box">
-            <div class="battery-shell">
-                <div class="liquid-container">
-                    <div class="liquid-fill" id="fill"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left: Animation & Quick Stats -->
+            <div class="glass-panel p-8 flex flex-col items-center justify-center reveal" style="transition-delay: 0.1s">
+                <div class="battery-container mb-6">
+                    <div class="lightning"><i class="fas fa-bolt"></i></div>
+                    <div id="water-fill" class="water"></div>
+                </div>
+                <div class="text-center">
+                    <span id="pct" class="text-6xl font-black">65%</span>
+                    <p id="txt-charging-mode" class="text-green-400 font-bold mt-2">Ultra Fast Charging</p>
+                </div>
+                
+                <div class="w-full mt-8 grid grid-cols-2 gap-4 border-t border-white/10 pt-6">
+                    <div class="text-center">
+                        <p id="txt-temp" class="text-[10px] uppercase opacity-60">Temperature</p>
+                        <p class="font-bold">32.4°C</p>
+                    </div>
+                    <div class="text-center">
+                        <p id="txt-voltage" class="text-[10px] uppercase opacity-60">Voltage</p>
+                        <p class="font-bold">4.2V</p>
+                    </div>
                 </div>
             </div>
-            <h1 id="perc" style="font-size: 50px; margin-top: 10px; font-weight: 900;">0%</h1>
-            <div id="mode-text" style="color: var(--primary); font-size: 11px; font-weight: 800; letter-spacing: 2px;">
-                SUPER VOOC 4.0
+
+            <!-- Middle: Chart & File Access -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Curve -->
+                <div class="glass-panel p-6 reveal" style="transition-delay: 0.2s">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 id="txt-curve" class="font-bold text-lg">Charging Curve</h3>
+                        <span class="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded">Live AI Analysis</span>
+                    </div>
+                    <canvas id="chargeChart" height="120"></canvas>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- File Explorer -->
+                    <div class="glass-panel p-6 reveal" style="transition-delay: 0.3s">
+                        <div class="flex items-center gap-4 mb-4">
+                            <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png" class="w-12 icon-3d" alt="Files">
+                            <h3 id="txt-files" class="font-bold">Access Internal Files</h3>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="bg-white/5 p-2 rounded flex justify-between items-center text-sm">
+                                <span>/DCIM/Camera</span>
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </div>
+                            <div class="bg-white/5 p-2 rounded flex justify-between items-center text-sm">
+                                <span>/Download</span>
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </div>
+                        </div>
+                        <button class="w-full mt-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 text-sm transition" id="txt-read-btn">Read File System</button>
+                    </div>
+
+                    <!-- Charging Tips -->
+                    <div class="glass-panel p-6 reveal" style="transition-delay: 0.4s">
+                        <div class="flex items-center gap-4 mb-4">
+                            <img src="https://cdn-icons-png.flaticon.com/512/1042/1042337.png" class="w-12 icon-3d" alt="Tips">
+                            <h3 id="txt-tips-title" class="font-bold">Battery Tips</h3>
+                        </div>
+                        <ul class="text-sm space-y-3 opacity-90">
+                            <li id="tip1">• Avoid 100% charging for longevity.</li>
+                            <li id="tip2">• Use original cables for 60W speed.</li>
+                            <li id="tip3">• Disable 5G to reduce heat.</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Right Column: Details -->
-        <div class="details-box">
-            <div style="margin-bottom: 20px;">
-                <h2 style="font-size: 22px;">PowerFlow Ultimate</h2>
-                <p style="font-size: 10px; opacity: 0.5;">VERSION 5.5.0 PRO EDITION • PLATINUM</p>
+        <!-- Pro Footer Stats -->
+        <div class="mt-8 glass-panel p-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center reveal" style="transition-delay: 0.5s">
+            <div>
+                <p id="txt-time" class="text-xs opacity-60 uppercase">Time Remaining</p>
+                <p class="text-xl font-bold text-blue-400">24 Mins</p>
             </div>
-
-            <div class="stats-grid">
-                <!-- Card 1 -->
-                <div class="stat-card" onclick="toggleCard(this)">
-                    <i class="fas fa-bolt-lightning pixar-icon"></i>
-                    <div>
-                        <div style="font-size: 10px; opacity: 0.6;">TIME TO FULL</div>
-                        <div class="value" id="eta-val" style="font-size: 16px; font-weight: 700;">--</div>
-                        <div class="detail-info">Calculated based on AI charging history and hardware temperature.</div>
-                    </div>
-                </div>
-
-                <!-- Card 2 -->
-                <div class="stat-card" onclick="toggleCard(this)">
-                    <i class="fas fa-microchip pixar-icon"></i>
-                    <div>
-                        <div style="font-size: 10px; opacity: 0.6;">AMPERAGE</div>
-                        <div class="value" id="amp-val" style="font-size: 16px; font-weight: 700;">2800 mA</div>
-                        <div class="detail-info">Input current flow through USB-C Controller. High speed detected.</div>
-                    </div>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="stat-card" onclick="toggleCard(this)">
-                    <i class="fas fa-thermometer-half pixar-icon"></i>
-                    <div>
-                        <div style="font-size: 10px; opacity: 0.6;">TEMPERATURE</div>
-                        <div class="value" id="temp-val" style="font-size: 16px; font-weight: 700;">32.0°C</div>
-                        <div class="detail-info">Internal core thermal monitoring. Heat sink efficiency at 98%.</div>
-                    </div>
-                </div>
-
-                <!-- Card 4 -->
-                <div class="stat-card" onclick="toggleCard(this)">
-                    <i class="fas fa-shield-heart pixar-icon"></i>
-                    <div>
-                        <div style="font-size: 10px; opacity: 0.6;">HEALTH</div>
-                        <div class="value" style="font-size: 16px; font-weight: 700; color: #10b981;">OPTIMAL</div>
-                        <div class="detail-info">No chemical degradation detected. Cycle count: 124.</div>
-                    </div>
-                </div>
-
-                <div class="stat-card card-active" style="grid-column: span 2; background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);">
-                    <i class="fas fa-circle-check pixar-icon"></i>
-                    <div>
-                        <div style="font-size: 10px; opacity: 0.6;">AI STATUS</div>
-                        <div class="value" style="font-size: 14px; font-weight: 700;">Protection Protocol Active</div>
-                        <div class="detail-info" style="display: block;">The system is dynamically adjusting voltage to prevent overheating and extend battery lifespan by 2.5x.</div>
-                    </div>
-                </div>
+            <div>
+                <p id="txt-health" class="text-xs opacity-60 uppercase">Health Score</p>
+                <p class="text-xl font-bold text-green-400">98%</p>
+            </div>
+            <div>
+                <p id="txt-cycles" class="text-xs opacity-60 uppercase">Cycle Count</p>
+                <p class="text-xl font-bold">142</p>
+            </div>
+            <div>
+                <p id="txt-unlimited" class="text-xs opacity-60 uppercase">Edition</p>
+                <p class="text-xl font-bold text-yellow-400 uppercase">PRO UNLIMITED</p>
             </div>
         </div>
     </div>
 
     <script>
-        // --- Theme Engine ---
-        function changeTheme(theme) {
-            const body = document.getElementById('main-body');
-            body.className = 'theme-' + theme;
+        // Languages Data
+        const i18n = {
+            en: {
+                connect: "USB Disconnected",
+                subConnect: "Please connect your phone via USB to access Pro features.",
+                status: "Optimizing for Phone Performance...",
+                curve: "Charging Curve",
+                files: "Access Internal Files",
+                read: "Read File System",
+                tips: "Battery Tips",
+                tip1: "• Avoid 100% charging for longevity.",
+                tip2: "• Use original cables for 60W speed.",
+                tip3: "• Disable 5G to reduce heat.",
+                time: "Time Remaining",
+                health: "Health Score",
+                cycles: "Cycle Count",
+                unlimited: "Edition",
+                chargingMode: "Ultra Fast Charging"
+            },
+            my: {
+                connect: "USB Tidak Disambung",
+                subConnect: "Sila sambungkan telefon anda melalui USB untuk akses Pro.",
+                status: "Mengoptimumkan Prestasi Telefon...",
+                curve: "Lengkungan Pengecasan",
+                files: "Akses Fail Dalaman",
+                read: "Baca Sistem Fail",
+                tips: "Tip Bateri",
+                tip1: "• Elakkan cas 100% untuk jangka hayat bateri.",
+                tip2: "• Guna kabel asli untuk kelajuan 60W.",
+                tip3: "• Tutup 5G untuk kurangkan haba.",
+                time: "Masa Tinggal",
+                health: "Skor Kesihatan",
+                cycles: "Kiraan Kitaran",
+                unlimited: "Edisi",
+                chargingMode: "Pengecasan Sangat Pantas"
+            }
+        };
+
+        let currentLang = 'en';
+
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'my' : 'en';
+            document.getElementById('txt-connect').innerText = i18n[currentLang].connect;
+            document.getElementById('txt-sub-connect').innerText = i18n[currentLang].subConnect;
+            document.getElementById('txt-status').innerText = i18n[currentLang].status;
+            document.getElementById('txt-curve').innerText = i18n[currentLang].curve;
+            document.getElementById('txt-files').innerText = i18n[currentLang].files;
+            document.getElementById('txt-read-btn').innerText = i18n[currentLang].read;
+            document.getElementById('txt-tips-title').innerText = i18n[currentLang].tips;
+            document.getElementById('tip1').innerText = i18n[currentLang].tip1;
+            document.getElementById('tip2').innerText = i18n[currentLang].tip2;
+            document.getElementById('tip3').innerText = i18n[currentLang].tip3;
+            document.getElementById('txt-time').innerText = i18n[currentLang].time;
+            document.getElementById('txt-health').innerText = i18n[currentLang].health;
+            document.getElementById('txt-cycles').innerText = i18n[currentLang].cycles;
+            document.getElementById('txt-unlimited').innerText = i18n[currentLang].unlimited;
+            document.getElementById('txt-charging-mode').innerText = i18n[currentLang].chargingMode;
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('grey-mode');
+        }
+
+        function simulateConnect() {
+            document.getElementById('usb-lock').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'block';
             
-            // Re-trigger liquid animation color
-            const fill = document.getElementById('fill');
-            fill.style.boxShadow = `0 0 50px var(--primary)`;
+            // Trigger Reveal Animations
+            setTimeout(() => {
+                document.querySelectorAll('.reveal').forEach(el => el.classList.add('active'));
+                initChart();
+                startChargingSim();
+            }, 100);
         }
 
-        // --- Battery & USB Logic ---
-        async function initSystem() {
-            if (!navigator.getBattery) return;
-            const battery = await navigator.getBattery();
-
-            function updateUI() {
-                const level = Math.floor(battery.level * 100);
-                
-                // USB Shield
-                const shield = document.getElementById('usb-shield');
-                if (battery.charging) {
-                    shield.style.opacity = "0";
-                    shield.style.pointerEvents = "none";
-                } else {
-                    shield.style.opacity = "1";
-                    shield.style.pointerEvents = "all";
+        // Chart.js Configuration
+        function initChart() {
+            const ctx = document.getElementById('chargeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['0m', '5m', '10m', '15m', '20m', '25m'],
+                    datasets: [{
+                        label: 'Charging Speed (W)',
+                        data: [20, 45, 65, 60, 40, 25],
+                        borderColor: '#00d2ff',
+                        backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false },
+                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.5)' } }
+                    }
                 }
+            });
+        }
 
-                // Stats Update
-                document.getElementById('perc').innerText = level + '%';
-                document.getElementById('fill').style.height = level + '%';
+        // Battery Simulation Logic
+        function startChargingSim() {
+            let pct = 65;
+            const pctText = document.getElementById('pct');
+            const water = document.getElementById('water-fill');
 
-                // ETA Logic
-                if(battery.chargingTime !== Infinity) {
-                    document.getElementById('eta-val').innerText = Math.floor(battery.chargingTime / 60) + "m";
-                } else {
-                    document.getElementById('eta-val').innerText = "~" + Math.round((100-level)*1.2) + "m";
+            setInterval(() => {
+                if(pct < 100) {
+                    pct += 0.1;
+                    pctText.innerText = Math.floor(pct) + "%";
+                    water.style.height = pct + "%";
                 }
-
-                // Simulate Realtime Data
-                document.getElementById('temp-val').innerText = (31 + Math.random()*4).toFixed(1) + "°C";
-                document.getElementById('amp-val').innerText = Math.floor(3000 - (level*15)) + " mA";
-            }
-
-            updateUI();
-            battery.onchargingchange = updateUI;
-            battery.onlevelchange = updateUI;
+            }, 2000);
         }
-        initSystem();
-
-        // --- Detail Expansion ---
-        function toggleCard(el) {
-            el.classList.toggle('card-active');
-        }
-
-        // --- Pixar Bubbles ---
-        function createBubbles() {
-            const container = document.querySelector('.liquid-container');
-            const b = document.createElement('div');
-            b.className = 'bubble';
-            const size = Math.random() * 10 + 5 + 'px';
-            b.style.width = size;
-            b.style.height = size;
-            b.style.left = Math.random() * 100 + '%';
-            container.appendChild(b);
-            setTimeout(() => b.remove(), 3000);
-        }
-        setInterval(createBubbles, 400);
-
-        // --- Pull to Refresh Simulation ---
-        let startY = 0;
-        const ptr = document.getElementById('refresh-ptr');
-        
-        document.addEventListener('touchstart', (e) => startY = e.touches[0].pageY);
-        document.addEventListener('touchmove', (e) => {
-            const y = e.touches[0].pageY;
-            if (y > startY && window.scrollY === 0) {
-                ptr.style.height = '50px';
-            }
-        });
-        document.addEventListener('touchend', () => {
-            setTimeout(() => ptr.style.height = '0', 1000);
-            initSystem(); // "Refresh" data
-        });
-
-        // Mouse simulated PTR
-        document.addEventListener('mousedown', (e) => startY = e.pageY);
-        document.addEventListener('mouseup', (e) => {
-            if (e.pageY > startY + 50) {
-                ptr.style.height = '50px';
-                setTimeout(() => ptr.style.height = '0', 1500);
-            }
-        });
-
     </script>
 </body>
 </html>
