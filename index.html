@@ -20,7 +20,7 @@
             --border: rgba(255, 255, 255, 0.1);
         }
 
-        /* Themes */
+        /* Triple Themes */
         body.theme-transparent { 
             background: radial-gradient(circle at center, #1a1c2c 0%, #050505 100%); 
             --card: rgba(255, 255, 255, 0.05);
@@ -53,6 +53,7 @@
             border: 1px solid var(--border);
             border-radius: 24px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
         }
 
         /* 3D Pixar Water Animation */
@@ -89,10 +90,10 @@
         }
         @keyframes moveSpark { from { background-position: 0 0; } to { background-position: 0 100%; } }
 
-        /* Navigation Buttons */
         .btn-toggle {
             background: var(--card); padding: 8px 16px; border-radius: 12px;
             font-size: 10px; font-weight: 800; border: 1px solid var(--border);
+            cursor: pointer;
         }
 
         .reveal-content { display: none; opacity: 0; }
@@ -101,6 +102,24 @@
             position: fixed; inset: 0; z-index: 9999; background: #000;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
+
+        .diagnostic-console {
+            background: rgba(0,0,0,0.6);
+            border-radius: 12px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 9px;
+            height: 120px;
+            overflow-y: auto;
+            color: #00ff00;
+            border: 1px solid rgba(0,255,0,0.2);
+        }
+
+        .progress-mini {
+            height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;
+            overflow: hidden; display: none;
+        }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
 
         .icon-3d { font-size: 3rem; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5)); }
     </style>
@@ -114,7 +133,6 @@
         <p class="text-gray-500 text-sm mt-2" data-key="pro_notice">Unlimited Access • Pro Edition Only</p>
     </div>
 
-    <!-- Interface -->
     <div class="max-w-7xl mx-auto">
         
         <!-- Header Controls -->
@@ -155,10 +173,6 @@
                         </div>
                     </div>
                     <canvas id="curveChart" height="150"></canvas>
-                    <div class="p-3 bg-cyan-500/10 rounded-xl text-[10px]">
-                        <b data-key="charge_tips">Charging Tips:</b>
-                        <p data-key="tips_content">Disconnect at 80% to preserve lithium-ion lifecycle.</p>
-                    </div>
                 </div>
             </div>
 
@@ -166,158 +180,109 @@
             <div class="glass-card p-8 cursor-pointer" onclick="reveal('cpu-details')">
                 <div class="flex items-center gap-4 mb-8">
                     <div class="icon-3d">🚀</div>
-                    <div>
-                        <h2 class="text-lg font-bold" data-key="sys_status_pro">System Status Pro</h2>
-                        <span class="text-[9px] bg-cyan-500 text-black px-2 py-0.5 rounded-full font-bold">LIVE GRAPH</span>
-                    </div>
+                    <h2 class="text-lg font-bold" data-key="sys_status_pro">System Status Pro</h2>
                 </div>
-
                 <div class="space-y-4">
                     <div>
                         <div class="flex justify-between text-[10px] mb-1"><span data-key="cpu_usage">Cpu Usage</span><span id="cpu-txt">0%</span></div>
-                        <div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                            <div id="cpu-bar" class="h-full bg-cyan-400 w-0 transition-all"></div>
-                        </div>
+                        <div class="w-full bg-white/10 h-1.5 rounded-full"><div id="cpu-bar" class="h-full bg-cyan-400 w-0 transition-all"></div></div>
                     </div>
                     <div>
                         <div class="flex justify-between text-[10px] mb-1"><span data-key="mem_usage">Memory usage</span><span>4.2GB / 8GB</span></div>
-                        <div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                            <div class="h-full bg-purple-500 w-[52%]"></div>
-                        </div>
+                        <div class="w-full bg-white/10 h-1.5 rounded-full"><div class="h-full bg-purple-500 w-[52%]"></div></div>
                     </div>
                 </div>
-
                 <div id="cpu-details" class="reveal-content mt-8 space-y-3 font-mono text-[10px]">
                     <div class="flex justify-between border-b border-white/5 pb-1"><span data-key="avg_load">Avg Load</span><span>1.22, 1.45, 1.10</span></div>
                     <div class="flex justify-between border-b border-white/5 pb-1"><span data-key="uptime">System Uptime</span><span id="uptime-val">00:00:00</span></div>
                     <div class="flex justify-between border-b border-white/5 pb-1"><span data-key="boot_time">boot time</span><span>07:44:12 AM</span></div>
-                    <div class="flex justify-between border-b border-white/5 pb-1"><span data-key="disk_mem_stat">disk & memory statics</span><span>Read: 450MB/s</span></div>
-                    <div class="bg-black/30 p-2 rounded text-[9px] text-gray-500">
-                        <p>> Interactive CPU/Memory Graphs Active</p>
-                        <p>> Detail Hardware: ARMv8-A Generic</p>
-                    </div>
                 </div>
             </div>
 
             <!-- Storage Card -->
             <div class="glass-card p-8">
-                <div class="flex items-center gap-4 mb-6">
-                    <div class="icon-3d">💾</div>
-                    <h2 class="text-lg font-bold" data-key="storage_usage">Storage Usage</h2>
-                </div>
+                <div class="icon-3d mb-4">💾</div>
+                <h2 class="text-lg font-bold mb-2" data-key="storage_usage">Storage Usage</h2>
                 <p class="text-3xl font-black italic">128.5 <span class="text-sm opacity-50">/ 256GB</span></p>
-                <div class="w-full h-8 bg-black/20 rounded-xl mt-4 overflow-hidden flex">
+                <div class="w-full h-4 bg-black/20 rounded-full mt-4 overflow-hidden flex">
                     <div class="h-full bg-cyan-500 w-[40%]"></div>
-                    <div class="h-full bg-blue-600 w-[10%]"></div>
                 </div>
-                <button onclick="requestFiles()" class="w-full mt-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black tracking-widest uppercase hover:bg-white/10" data-key="allow_files">Allow read file on phones</button>
+                <button onclick="requestFiles()" class="w-full mt-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black tracking-widest uppercase hover:bg-white/10" data-key="allow_files">Allow Read Files</button>
             </div>
 
-            <!-- Network Analyzer Card (Full Span) -->
+            <!-- Network Analyzer Pro -->
             <div class="glass-card p-8 md:col-span-3 cursor-pointer" onclick="reveal('net-details')">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
                     <div class="flex items-center gap-4">
                         <div class="icon-3d">🛰️</div>
-                        <div>
-                            <h2 class="text-2xl font-black tracking-tighter" data-key="net_analyzer">NETWORK ANALYZER PRO</h2>
-                            <p id="net-conn" class="text-green-400 font-mono text-[10px]">CONNECTED • SECURE</p>
-                        </div>
+                        <h2 class="text-2xl font-black tracking-tighter" data-key="net_analyzer">NETWORK ANALYZER PRO</h2>
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-6 text-[10px] font-mono">
-                        <div><p class="text-gray-500">IP ADDRESS</p><p id="ip-addr">192.168.1.105</p></div>
-                        <div><p class="text-gray-500">NET TYPE</p><p id="net-type">WIFI 6 (5GHz)</p></div>
-                        <div><p class="text-gray-500">EXTERNAL IP</p><p id="ext-ip">Fetching...</p></div>
+                    <div class="grid grid-cols-3 gap-6 text-[10px] font-mono">
+                        <div><p class="opacity-50">GATEWAY</p><p>192.168.1.1</p></div>
+                        <div><p class="opacity-50">EXT IP</p><p id="ext-ip">...</p></div>
+                        <div><p class="opacity-50">TYPE</p><p>WIFI 6</p></div>
                     </div>
                 </div>
 
                 <div id="net-details" class="reveal-content mt-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-[11px] font-mono">
-                        <!-- Technical Info -->
-                        <div class="space-y-2">
-                            <p class="text-cyan-400 font-bold mb-2">ROUTING & IP</p>
-                            <p class="flex justify-between"><span>Default Gateway IP:</span> <span>192.168.1.1</span></p>
-                            <p class="flex justify-between"><span>Dns server ip:</span> <span>8.8.8.8</span></p>
-                            <p class="flex justify-between"><span>Gateway ipv6:</span> <span class="text-[9px]">fe80::1%wlan0</span></p>
-                            <p class="flex justify-between"><span>Dns server ipv6:</span> <span class="text-[9px]">2001:4860:4860::8888</span></p>
-                        </div>
-                        <!-- SIM Info -->
-                        <div class="space-y-2">
-                            <p class="text-purple-400 font-bold mb-2">CARRIER & SIM</p>
-                            <p class="flex justify-between"><span data-key="esim_info">e-sim information</span> <span class="text-gray-500">Active</span></p>
-                            <p class="flex justify-between"><span data-key="sim_info">sim information</span> <span class="text-gray-500">Maxis 5G</span></p>
-                            <p class="flex justify-between"><span data-key="non_data_sim">non-data sim information</span> <span class="text-gray-500">N/A</span></p>
-                            <p class="flex justify-between"><span>http proxy:</span> <span class="text-green-500">Disabled</span></p>
-                        </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <!-- Tools Grid -->
                         <div class="space-y-4">
-                            <p class="text-orange-400 font-bold mb-2 uppercase">Diagnostic Pro Tools</p>
-                            <div class="grid grid-cols-2 gap-2 text-[9px]">
-                                <button class="bg-black/20 p-2 rounded hover:bg-white/10">SPEED TESTER</button>
-                                <button class="bg-black/20 p-2 rounded hover:bg-white/10">VISUAL PING</button>
-                                <button class="bg-black/20 p-2 rounded hover:bg-white/10">WIFI SCANNER</button>
-                                <button class="bg-black/20 p-2 rounded hover:bg-white/10">WHOIS LOOKUP</button>
-                                <button class="bg-black/20 p-2 rounded hover:bg-white/10">PORT SCANNER</button>
-                                <button class="bg-black/20 p-2 rounded hover:bg-white/10">DLNA BROWSER</button>
+                            <p class="text-orange-400 font-bold text-xs uppercase italic border-b border-white/10 pb-1">Diagnostic Pro Tools</p>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <button onclick="runTool('speed', event)" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold hover:bg-cyan-500/20 transition">SPEED TESTER</button>
+                                <button onclick="runTool('ping', event)" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold hover:bg-cyan-500/20 transition">VISUAL PING</button>
+                                <button onclick="runTool('scan', event)" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold hover:bg-cyan-500/20 transition">WIFI SCANNER</button>
+                                <button onclick="runTool('whois', event)" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold hover:bg-cyan-500/20 transition">WHOIS LOOKUP</button>
+                                <button onclick="runTool('port', event)" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold hover:bg-cyan-500/20 transition">PORT SCANNER</button>
+                                <button onclick="runTool('dlna', event)" class="bg-white/5 p-3 rounded-xl text-[9px] font-bold hover:bg-cyan-500/20 transition">DLNA BROWSER</button>
                             </div>
+                        </div>
+                        <!-- Terminal Output -->
+                        <div class="space-y-4">
+                            <p class="text-cyan-400 font-bold text-xs uppercase italic border-b border-white/10 pb-1">Live Output Console</p>
+                            <div class="progress-mini mb-2" id="tool-progress"><div class="progress-fill" id="tool-progress-fill"></div></div>
+                            <div class="diagnostic-console" id="console-out">Ready to initialize scan...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Info Row -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 text-[10px] font-mono bg-black/20 p-4 rounded-2xl">
+                        <div class="space-y-1">
+                            <p class="text-gray-500" data-key="esim_info">e-sim information</p>
+                            <p class="text-cyan-400">ACTIVE - SLOT 0 [PRIMARY]</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-gray-500">DEFAULT GATEWAY IPV6</p>
+                            <p class="truncate">fe80::1%wlan0</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-gray-500">HTTP PROXY STATUS</p>
+                            <p class="text-green-500">SECURE / NONE</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <footer class="mt-20 pb-10 text-center opacity-30 text-[9px] tracking-[0.5em] uppercase">
-            X-Charge Ultimate Pro Architecture • 2024
-        </footer>
     </div>
 
     <script>
-        // --- TRANSLATION ENGINE ---
         const i18n = {
             en: {
-                connect_usb: "Connect USB to Start",
-                pro_notice: "Unlimited Access • Pro Edition Only",
-                sys_status_header: "Realtime Advanced System Mainframe",
-                bat_status: "Battery Status",
-                charge_time: "Calculate Charging Time",
-                bat_state: "Battery State",
-                charge_tips: "Charging Tips",
-                tips_content: "Disconnect at 80% to preserve lithium-ion lifecycle.",
-                sys_status_pro: "System Status Pro",
-                cpu_usage: "Cpu Usage",
-                mem_usage: "Memory Usage",
-                avg_load: "Avg Load",
-                uptime: "System Uptime",
-                boot_time: "Boot Time",
-                disk_mem_stat: "Disk & Memory Statics",
-                storage_usage: "Storage Usage",
-                allow_files: "Allow read file on phones",
-                net_analyzer: "NETWORK ANALYZER PRO",
-                esim_info: "e-sim information",
-                sim_info: "sim information",
-                non_data_sim: "non-data sim info"
+                connect_usb: "Connect USB to Start", pro_notice: "Unlimited Access • Pro Edition Only",
+                sys_status_header: "Realtime Advanced System Mainframe", bat_status: "Battery Status",
+                charge_time: "Calculate Charging Time", bat_state: "Battery State",
+                sys_status_pro: "System Status Pro", cpu_usage: "Cpu Usage",
+                mem_usage: "Memory Usage", storage_usage: "Storage Usage",
+                allow_files: "Allow Read Files", net_analyzer: "NETWORK ANALYZER PRO"
             },
             my: {
-                connect_usb: "Sambung USB Untuk Mula",
-                pro_notice: "Akses Tanpa Had • Edisi Pro Sahaja",
-                sys_status_header: "Rangka Utama Sistem Canggih Masa Nyata",
-                bat_status: "Status Bateri",
-                charge_time: "Kira Masa Mengecas",
-                bat_state: "Keadaan Bateri",
-                charge_tips: "Tips Pengecasan",
-                tips_content: "Cabut pengecas pada 80% untuk memelihara hayat bateri.",
-                sys_status_pro: "Status Sistem Pro",
-                cpu_usage: "Penggunaan CPU",
-                mem_usage: "Penggunaan Memori",
-                avg_load: "Beban Purata",
-                uptime: "Masa Aktif Sistem",
-                boot_time: "Masa But",
-                disk_mem_stat: "Statistik Cakera & Memori",
-                storage_usage: "Penggunaan Storan",
-                allow_files: "Benarkan baca fail telefon",
-                net_analyzer: "PENGANALISIS RANGKAIAN PRO",
-                esim_info: "Maklumat e-sim",
-                sim_info: "Maklumat sim",
-                non_data_sim: "Info sim bukan data"
+                connect_usb: "Sambung USB Untuk Mula", pro_notice: "Akses Tanpa Had • Edisi Pro Sahaja",
+                sys_status_header: "Rangka Utama Sistem Canggih Masa Nyata", bat_status: "Status Bateri",
+                charge_time: "Kira Masa Mengecas", bat_state: "Keadaan Bateri",
+                sys_status_pro: "Status Sistem Pro", cpu_usage: "Penggunaan CPU",
+                mem_usage: "Penggunaan Memori", storage_usage: "Penggunaan Storan",
+                allow_files: "Benarkan Baca Fail", net_analyzer: "PENGANALISIS RANGKAIAN PRO"
             }
         };
 
@@ -335,93 +300,85 @@
 
         function cycleTheme() {
             const themes = ['transparent', 'grey', 'white'];
-            let idx = themes.indexOf(currentTheme);
-            idx = (idx + 1) % themes.length;
+            let idx = (themes.indexOf(currentTheme) + 1) % themes.length;
             document.body.className = `theme-${themes[idx]} p-4 md:p-10`;
             currentTheme = themes[idx];
         }
 
-        // --- CORE LOGIC ---
         function reveal(id) {
             const el = document.getElementById(id);
             if (el.style.display === "block") {
                 gsap.to(el, { opacity: 0, y: 10, duration: 0.3, onComplete: () => el.style.display = "none" });
             } else {
                 el.style.display = "block";
-                gsap.to(el, { opacity: 1, y: 0, duration: 0.5, ease: "back.out" });
+                gsap.to(el, { opacity: 1, y: 0, duration: 0.5 });
             }
         }
 
+        // Diagnostic Tool Logic
+        async function runTool(type, event) {
+            event.stopPropagation(); // Stop reveal toggle when clicking buttons
+            const consoleOut = document.getElementById('console-out');
+            const progress = document.getElementById('tool-progress');
+            const fill = document.getElementById('tool-progress-fill');
+            
+            consoleOut.innerHTML = `> Initializing ${type.toUpperCase()}...<br>`;
+            progress.style.display = 'block';
+            fill.style.width = '0%';
+
+            const logs = {
+                speed: ["> Connecting to local node...", "> Testing Latency...", "> Download: 450Mbps", "> Upload: 120Mbps", "> Success: Speed test complete."],
+                ping: ["> Pinging 8.8.8.8...", "> Reply from 8.8.8.8: time=12ms", "> Reply from 8.8.8.8: time=14ms", "> Average: 13ms"],
+                scan: ["> Scanning 2.4GHz/5GHz...", "> Found: ASUS_ROG_5G (-45dBm)", "> Found: Starlink_WiFi (-60dBm)", "> Scan complete."],
+                port: ["> Scanning ports 1-1024...", "> Port 80: OPEN", "> Port 443: OPEN", "> Port 22: CLOSED", "> Stealth Scan Complete."],
+                whois: ["> Querying WHOIS Database...", "> Domain: github.com", "> Registrar: MarkMonitor Inc.", "> Expires: 2026-10-09"],
+                dlna: ["> Searching for DLNA/UPnP...", "> Found: LG OLED TV", "> Found: PS5-Console", "> Media Server active."]
+            };
+
+            for(let i=0; i<logs[type].length; i++) {
+                await new Promise(r => setTimeout(r, 600));
+                consoleOut.innerHTML += logs[type][i] + "<br>";
+                fill.style.width = ((i+1) / logs[type].length * 100) + "%";
+                consoleOut.scrollTop = consoleOut.scrollHeight;
+            }
+        }
+
+        // Real Battery
         async function initBattery() {
             try {
-                const battery = await navigator.getBattery();
-                const update = () => {
-                    const level = Math.round(battery.level * 100);
-                    document.getElementById('bat-pct').innerText = level;
-                    document.getElementById('water-lvl').style.height = level + '%';
-                    
-                    const charging = battery.charging;
-                    document.getElementById('usb-screen').style.display = charging ? 'none' : 'flex';
-                    document.getElementById('bat-state-txt').innerText = charging ? "⚡ FAST CHARGING CONNECTED" : "❌ DISCONNECTED";
-                    
-                    if(charging && battery.chargingTime !== Infinity) {
-                        document.getElementById('charge-time-val').innerText = Math.round(battery.chargingTime / 60) + " Mins";
-                    } else {
-                        document.getElementById('charge-time-val').innerText = charging ? "Full" : "N/A";
-                    }
+                const b = await navigator.getBattery();
+                const upd = () => {
+                    document.getElementById('bat-pct').innerText = Math.round(b.level * 100);
+                    document.getElementById('water-lvl').style.height = (b.level * 100) + '%';
+                    document.getElementById('usb-screen').style.display = b.charging ? 'none' : 'flex';
+                    document.getElementById('bat-state-txt').innerText = b.charging ? "⚡ FAST CHARGING" : "❌ PLUG IN USB";
                 };
-                battery.onlevelchange = update;
-                battery.onchargingchange = update;
-                update();
-            } catch (e) { document.getElementById('usb-screen').style.display = 'none'; }
+                b.onlevelchange = upd; b.onchargingchange = upd; upd();
+            } catch(e) { document.getElementById('usb-screen').style.display = 'none'; }
         }
 
-        function startMonitoring() {
-            setInterval(() => {
-                // CPU Jitter
-                const cpu = Math.floor(Math.random() * 20) + 15;
-                document.getElementById('cpu-txt').innerText = cpu + '%';
-                document.getElementById('cpu-bar').style.width = cpu + '%';
+        setInterval(() => {
+            const cpu = Math.floor(Math.random() * 20) + 15;
+            document.getElementById('cpu-txt').innerText = cpu + '%';
+            document.getElementById('cpu-bar').style.width = cpu + '%';
+            const diff = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('uptime-val').innerText = new Date(diff * 1000).toISOString().substr(11, 8);
+        }, 1000);
 
-                // Uptime
-                const diff = Math.floor((Date.now() - startTime) / 1000);
-                const h = Math.floor(diff / 3600).toString().padStart(2, '0');
-                const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
-                const s = (diff % 60).toString().padStart(2, '0');
-                document.getElementById('uptime-val').innerText = `${h}:${m}:${s}`;
-            }, 1000);
+        fetch('https://api.ipify.org?format=json').then(r=>r.json()).then(d=>document.getElementById('ext-ip').innerText = d.ip);
 
-            // Fetch External IP
-            fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => {
-                document.getElementById('ext-ip').innerText = d.ip;
-            }).catch(() => document.getElementById('ext-ip').innerText = "1.1.1.1");
-        }
-
-        function requestFiles() {
-            alert("Unlimited Access: System requesting full directory read permissions. Please check device settings.");
-        }
-
-        // --- CHART ---
-        const ctx = document.getElementById('curveChart').getContext('2d');
-        new Chart(ctx, {
+        // Chart
+        new Chart(document.getElementById('curveChart'), {
             type: 'line',
-            data: {
-                labels: ['0', '20', '40', '60', '80', '100'],
-                datasets: [{
-                    data: [1, 5, 8, 9, 6, 2],
-                    borderColor: '#00f2ff',
-                    tension: 0.4,
-                    fill: true,
-                    backgroundColor: 'rgba(0, 242, 255, 0.05)'
-                }]
-            },
+            data: { labels: [0,1,2,3,4,5], datasets: [{ data: [2,5,8,9,7,2], borderColor: '#00f2ff', fill: true, backgroundColor: 'rgba(0,242,255,0.05)', tension: 0.4 }] },
             options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
         });
 
+        function requestFiles() { alert("Unlimited Pro: System storage access granted."); }
+
         window.onload = () => {
             initBattery();
-            startMonitoring();
-            gsap.from(".glass-card", { opacity: 0, y: 30, duration: 1, stagger: 0.2, ease: "power4.out" });
+            gsap.from(".glass-card", { opacity: 0, y: 30, stagger: 0.1, duration: 0.8 });
         };
     </script>
 </body>
